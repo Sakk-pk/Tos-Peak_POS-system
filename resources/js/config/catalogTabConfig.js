@@ -1,0 +1,42 @@
+export const TAB_CONFIG = {
+    Categories: {
+        key: 'categories',
+        backendTab: 'categories',
+        title: 'Categories',
+        description: 'Manage top-level categories used by products.',
+        placeholder: 'Category name...',
+        hasParentSelector: false,
+    },
+    'Sub-Categories': {
+        key: 'subCategories',
+        backendTab: 'sub_categories',
+        title: 'Sub-Categories',
+        description: 'Pick a parent category, type a name, and add it to your catalog.',
+        placeholder: 'Sub-category name...',
+        hasParentSelector: true,
+    },
+    Colors: {
+        key: 'colors',
+        backendTab: 'colors',
+        title: 'Colors',
+        description: 'Manage color entries used in the catalog.',
+        placeholder: 'Color name...',
+        hasParentSelector: false,
+    },
+    Brands: {
+        key: 'brands',
+        backendTab: 'brands',
+        title: 'Brands',
+        description: 'Manage manufacturer / brand names.',
+        placeholder: 'Brand name...',
+        hasParentSelector: false,
+    },
+    Sizes: {
+        key: 'sizes',
+        backendTab: 'sizes',
+        title: 'Sizes',
+        description: 'Manage product size labels.',
+        placeholder: 'Size name...',
+        hasParentSelector: false,
+    },
+};

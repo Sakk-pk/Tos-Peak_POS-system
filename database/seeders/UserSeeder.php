@@ -16,15 +16,14 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::create([
+        $user = User::updateOrCreate(['email' => 'admin@gmail.com'], [
             'name' => 'admin',
-            'email' => 'admin@gmail.com',
             'password' => Hash::make('123456')
         ]);
         
-        $role = Role::create(['name' => 'Admin']);
+        $role = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
         $permissions = Permission::pluck('id','id')->all();
         $role->syncPermissions($permissions);
-        $user->assignRole([$role->id]);
+        $user->syncRoles([$role->name]);
     }
 }
