@@ -12,7 +12,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Bakong KHQR — repository interface bindings
+        $this->app->bind(
+            \App\Repositories\PaymentRepositoryInterface::class,
+            \App\Repositories\PaymentRepository::class
+        );
+        $this->app->bind(
+            \App\Repositories\OrderRepositoryInterface::class,
+            \App\Repositories\OrderRepository::class
+        );
+        $this->app->bind(
+            \App\Repositories\ProductRepositoryInterface::class,
+            \App\Repositories\ProductRepository::class
+        );
     }
 
     /**
@@ -21,5 +33,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+        
+        \App\Models\Product::observe(\App\Observers\ProductObserver::class);
     }
 }
