@@ -18,23 +18,7 @@ class DashboardController extends Controller
         $totalUsers = User::count();
         $totalProducts = Product::count();
         $totalCategories = Category::count();
-        
-        $defaultThreshold = (int) config('inventory.low_stock_threshold', 15);
-        
-        // Low Stock Products (stock <= threshold && stock > 0)
-        $lowStockCount = Product::whereRaw('stock <= COALESCE(low_stock_threshold, ?) AND stock > 0', [$defaultThreshold])->count();
-        
-        // Critical Stock Products (stock == 0)
-        $criticalStockCount = Product::where('stock', 0)->count();
-
-        // Recent alerts from Telegram logs (types: low_stock, out_of_stock)
-        $recentAlerts = \App\Models\TelegramNotificationLog::with('product')
-            ->whereIn('type', ['low_stock', 'out_of_stock'])
-            ->latest()
-            ->limit(5)
-            ->get();
-
-        $totalAlertsCount = \App\Models\TelegramNotificationLog::whereIn('type', ['low_stock', 'out_of_stock'])->count();
+        $lowStockCount = Product::where('stock', '<=', 15)->count();
 
         $productsCreatedToday = Product::whereDate('created_at', $today)->count();
         $productsCreatedYesterday = Product::whereDate('created_at', $today->copy()->subDay())->count();
@@ -46,21 +30,13 @@ class DashboardController extends Controller
             ->limit(6)
             ->get(['id', 'name', 'stock', 'category_id', 'created_at']);
 
-        // Fetch low stock items for dashboard widget (excluding out of stock)
         $lowStockItems = Product::with('category')
-            ->whereRaw('stock <= COALESCE(low_stock_threshold, ?) AND stock > 0', [$defaultThreshold])
+            ->where('stock', '<=', 15)
             ->orderBy('stock')
-            ->limit(6)
-            ->get(['id', 'name', 'stock', 'category_id', 'low_stock_threshold']);
-
-        // Fetch critical stock items (out of stock)
-        $criticalStockItems = Product::with('category')
-            ->where('stock', 0)
-            ->orderBy('name')
             ->limit(6)
             ->get(['id', 'name', 'stock', 'category_id']);
 
-        return Inertia::render('Admin/Dashboard/Dashboard', [
+        return Inertia::render('Dashboard', [
             'dashboard' => [
                 'metrics' => [
                     [
@@ -77,23 +53,20 @@ class DashboardController extends Controller
                     ],
                     [
                         'id' => 3,
-                        'title' => 'Low Stock',
-                        'value' => (string) $lowStockCount,
+                        'title' => 'Categories',
+                        'value' => (string) $totalCategories,
                         'delta' => null,
                     ],
                     [
                         'id' => 4,
-                        'title' => 'Critical Stock',
-                        'value' => (string) $criticalStockCount,
+                        'title' => 'Low Stock',
+                        'value' => (string) $lowStockCount,
                         'delta' => null,
                     ],
                 ],
                 'recentUsers' => $recentUsers,
                 'recentProducts' => $recentProducts,
                 'lowStockItems' => $lowStockItems,
-                'criticalStockItems' => $criticalStockItems,
-                'recentAlerts' => $recentAlerts,
-                'totalAlertsCount' => $totalAlertsCount,
             ],
         ]);
     }

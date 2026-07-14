@@ -2,439 +2,112 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ═══════════════════════════════════════════════════════════════════════
-   TOS-PEAK v2.0 Redesign — CSS Tokens
-   Sport Luxury · Modern Retail · High Contrast · Clean Typography
-   ═══════════════════════════════════════════════════════════════════════ */
+/* Centralized color tokens for the app (single-file). */
+/* Contains root (light) and .dark theme variables. */
 
 :root {
-    /* ── Brand primitives ───────────────────────────────────────────── */
-    --brand-paper:   0.975 0.003 85;    /* premium off-white warm paper  */
-    --brand-ink:     0.13 0 0;          /* refined near-black            */
-    --brand-red:     0.57 0.22 25;      /* sport luxury signature red    */
-    --brand-success: 0.62 0.16 145;     /* stock/success green           */
-
-    /* ── Radius — modern SaaS feel ─────────────────────────────────── */
-    --radius: 0.5rem; /* 8px base for v2.0 */
-
-    /* ── Semantic tokens ────────────────────────────────────────────── */
-    --background:         var(--brand-paper);
-    --foreground:         var(--brand-ink);
-
-    --card:               1 0 0;                      /* clean white cards   */
-    --card-foreground:    var(--brand-ink);
-
-    --popover:            1 0 0;
-    --popover-foreground: var(--brand-ink);
-
-    --primary:            var(--brand-red);
-    --primary-foreground: 0.99 0 0;
-
-    --secondary:          var(--brand-ink);
-    --secondary-foreground: 0.99 0 0;
-
-    --muted:              0.95 0.002 85;              /* warm light gray     */
-    --muted-foreground:   0.45 0 0;
-
-    --accent:             var(--brand-red);
-    --accent-foreground:  0.99 0 0;
-
-    --destructive:        var(--brand-red);
-    --destructive-foreground: 0.99 0 0;
-
-    --success:            var(--brand-success);
-    --success-foreground: 0.99 0 0;
-
-    --warning:            0.78 0.16 75;
-    --warning-foreground: 0.25 0.05 75;
-
-    --info:               0.7 0.13 230;
-    --info-foreground:    0.99 0 0;
-
-    /* Hairline border: 7% opacity ink */
-    --border:             0.13 0 0 / 0.07;
-    --input:              0.13 0 0 / 0.12;
-    --ring:               var(--brand-red);
-
-    /* ── Charts ─────────────────────────────────────────────────────── */
-    --chart-1: var(--brand-red);
-    --chart-2: var(--brand-ink);
-    --chart-3: 0.5 0 0;
-    --chart-4: 0.65 0 0;
-    --chart-5: 0.35 0 0;
-
-    /* ── Sidebar — ink chrome ────────────────────────────────────────── */
-    --sidebar:                    var(--brand-ink);       /* deep ink bg     */
-    --sidebar-foreground:         0.85 0 0;               /* off-white text  */
-    --sidebar-primary:            var(--brand-red);       /* active accent   */
-    --sidebar-primary-foreground: 0.99 0 0;
-    --sidebar-accent:             0.22 0 0;
-    --sidebar-accent-foreground:  0.99 0 0;
-    --sidebar-border:             0.22 0 0;
-    --sidebar-ring:               var(--brand-red);
+	--radius: 0.75rem;
+	--background: oklch(0.965 0 0);
+	--foreground: oklch(0.15 0 0);
+	--card: oklch(1 0 0);
+	--card-foreground: oklch(0.15 0 0);
+	--popover: oklch(1 0 0);
+	--popover-foreground: oklch(0.15 0 0);
+	--primary: oklch(0.12 0 0);
+	--primary-foreground: oklch(0.99 0 0);
+	--secondary: oklch(0.95 0 0);
+	--secondary-foreground: oklch(0.18 0 0);
+	--muted: oklch(0.955 0 0);
+	--muted-foreground: oklch(0.5 0 0);
+	--accent: oklch(0.62 0.23 27);
+	--accent-foreground: oklch(0.99 0 0);
+	--destructive: oklch(0.62 0.23 27);
+	--destructive-foreground: oklch(0.99 0 0);
+	--success: oklch(0.65 0.16 155);
+	--success-foreground: oklch(0.99 0 0);
+	--warning: oklch(0.78 0.16 75);
+	--warning-foreground: oklch(0.25 0.05 75);
+	--info: oklch(0.7 0.13 230);
+	--info-foreground: oklch(0.99 0 0);
+	--border: oklch(0.9 0 0);
+	--input: oklch(0.9 0 0);
+	--ring: oklch(0.62 0.23 27);
+	--chart-1: oklch(0.12 0 0);
+	--chart-2: oklch(0.62 0.23 27);
+	--chart-3: oklch(0.5 0 0);
+	--chart-4: oklch(0.78 0.16 75);
+	--chart-5: oklch(0.7 0.13 230);
+	--sidebar: oklch(0.12 0 0);
+	--sidebar-foreground: oklch(0.85 0 0);
+	--sidebar-primary: oklch(0.62 0.23 27);
+	--sidebar-primary-foreground: oklch(0.99 0 0);
+	--sidebar-accent: oklch(0.2 0 0);
+	--sidebar-accent-foreground: oklch(0.99 0 0);
+	--sidebar-border: oklch(0.22 0 0);
+	--sidebar-ring: oklch(0.62 0.23 27);
 }
 
-/* ── Base layer ──────────────────────────────────────────────────────── */
+.dark {
+	--background: oklch(0.18 0.02 260);
+	--foreground: oklch(0.97 0.005 250);
+	--card: oklch(0.22 0.025 260);
+	--card-foreground: oklch(0.97 0.005 250);
+	--popover: oklch(0.22 0.025 260);
+	--popover-foreground: oklch(0.97 0.005 250);
+	--primary: oklch(0.7 0.18 265);
+	--primary-foreground: oklch(0.18 0.02 260);
+	--secondary: oklch(0.28 0.03 260);
+	--secondary-foreground: oklch(0.97 0.005 250);
+	--muted: oklch(0.28 0.03 260);
+	--muted-foreground: oklch(0.7 0.02 260);
+	--accent: oklch(0.32 0.06 265);
+	--accent-foreground: oklch(0.97 0.005 250);
+	--destructive: oklch(0.65 0.22 25);
+	--destructive-foreground: oklch(0.99 0 0);
+	--success: oklch(0.65 0.16 155);
+	--success-foreground: oklch(0.99 0 0);
+	--warning: oklch(0.78 0.16 75);
+	--warning-foreground: oklch(0.25 0.05 75);
+	--info: oklch(0.7 0.13 230);
+	--info-foreground: oklch(0.99 0 0);
+	--border: oklch(1 0 0 / 10%);
+	--input: oklch(1 0 0 / 15%);
+	--ring: oklch(0.7 0.18 265);
+	--chart-1: oklch(0.7 0.18 265);
+	--chart-2: oklch(0.65 0.16 155);
+	--chart-3: oklch(0.78 0.16 75);
+	--chart-4: oklch(0.7 0.13 230);
+	--chart-5: oklch(0.65 0.22 25);
+	--sidebar: oklch(0.22 0.025 260);
+	--sidebar-foreground: oklch(0.97 0.005 250);
+	--sidebar-primary: oklch(0.7 0.18 265);
+	--sidebar-primary-foreground: oklch(0.18 0.02 260);
+	--sidebar-accent: oklch(0.3 0.04 265);
+	--sidebar-accent-foreground: oklch(0.97 0.005 250);
+	--sidebar-border: oklch(1 0 0 / 10%);
+	--sidebar-ring: oklch(0.7 0.18 265);
+}
+
 @layer base {
-    html {
-        color-scheme: light;
-        font-size: 17px; /* Nike-scale: bumps all rem-based sizes ~6% globally */
-    }
+	html {
+		color-scheme: light;
+	}
 
-    body {
-        background-color: oklch(var(--background));
-        color: oklch(var(--foreground));
-        font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
+	.dark html {
+		color-scheme: dark;
+	}
 
-    * {
-        border-color: oklch(var(--border));
-    }
+	body {
+		background: var(--background);
+		color: var(--foreground);
+	}
 
-    /* Selection — red bg, white text */
-    ::selection {
-        background-color: oklch(var(--brand-red));
-        color: oklch(0.99 0 0);
-    }
+	* {
+		border-color: var(--border);
+	}
 
-    /* Focus ring — 1px red on all interactive elements */
-    :focus-visible {
-        outline: 1px solid oklch(var(--brand-red));
-        outline-offset: 2px;
-    }
-
-    /* Strip browser-default underlines from all links */
-    a {
-        text-decoration: none;
-    }
-
-    a:hover {
-        text-decoration: none;
-    }
-}
-
-/* ── Animation keyframes ─────────────────────────────────────────────── */
-@keyframes slide-up {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes scale-in {
-    from { opacity: 0; transform: scale(0.96); }
-    to   { opacity: 1; transform: scale(1); }
-}
-
-/* ── Utility Classes ─────────────────────────────────────────────────── */
-.ease-out-expo {
-    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.mono-text {
-    font-family: 'DM Mono', ui-monospace, monospace;
-    font-variant-numeric: tabular-nums;
-}
-
-.display-hero {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    text-transform: uppercase;
-}
-
-/* ── Modal entrance animation ──────────────────────────────────────────── */
-@keyframes modal-in {
-    from { opacity: 0; transform: scale(0.95) translateY(8px); }
-    to   { opacity: 1; transform: scale(1)    translateY(0); }
-}
-
-.animate-modal-in {
-    animation: modal-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   HERO CAROUSEL
-   ══════════════════════════════════════════════════════════════════════════ */
-
-/* ── Container ─────────────────────────────────────────────────────────── */
-.hero-carousel {
-    position: relative;
-    width: 100%;
-    height: 85vh;
-    min-height: 520px;
-    max-height: 860px;
-    overflow: hidden;
-    background: #111;
-    user-select: none;
-}
-
-/* ── Background images — Ken Burns zoom ────────────────────────────────── */
-.hero-bg {
-    position: absolute;
-    inset: 0;
-    background-size: cover;
-    background-position: center;
-    opacity: 0;
-    transform: scale(1.08);
-    transition: opacity 0.55s ease;
-    will-change: transform, opacity;
-}
-
-.hero-bg--active {
-    opacity: 1;
-    animation: hero-kenburns 9s ease-out forwards;
-}
-
-@keyframes hero-kenburns {
-    from { transform: scale(1.08); }
-    to   { transform: scale(1.0);  }
-}
-
-/* ── Gradient overlay ───────────────────────────────────────────────────── */
-.hero-overlay {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-}
-
-/* ── Text content cross-fade ────────────────────────────────────────────── */
-.hero-content {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    transition: opacity 0.28s ease, transform 0.28s ease;
-}
-
-.hero-content--visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.hero-content--hidden {
-    opacity: 0;
-    transform: translateY(12px);
-}
-
-/* ── Inner text block ───────────────────────────────────────────────────── */
-.hero-inner {
-    position: relative;
-    z-index: 10;
-    padding: 0 clamp(1.25rem, 5vw, 5rem);
-    max-width: 700px;
-}
-
-/* ── Badge ──────────────────────────────────────────────────────────────── */
-.hero-badge {
-    display: inline-block;
-    padding: 0.3rem 0.85rem;
-    border-radius: 9999px;
-    font-size: 0.65rem;
-    font-weight: 800;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: #fff;
-    margin-bottom: 1.1rem;
-}
-
-/* ── Headline ────────────────────────────────────────────────────────────── */
-.hero-headline {
-    font-family: 'Syne', 'Plus Jakarta Sans', sans-serif;
-    font-size: clamp(2.8rem, 7.5vw, 6.2rem);
-    font-weight: 900;
-    line-height: 0.92;
-    letter-spacing: -0.03em;
-    text-transform: uppercase;
-    color: #fff;
-    margin: 0 0 1.25rem;
-}
-
-/* ── Sub-headline ─────────────────────────────────────────────────────────── */
-.hero-sub {
-    font-size: clamp(0.85rem, 1.4vw, 1.05rem);
-    line-height: 1.65;
-    color: rgba(255, 255, 255, 0.78);
-    max-width: 440px;
-    margin-bottom: 2rem;
-}
-
-/* ── CTA buttons ─────────────────────────────────────────────────────────── */
-.hero-ctas {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.hero-cta-primary {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.75rem 1.6rem;
-    border-radius: 0.75rem;
-    font-size: 0.78rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #fff;
-    text-decoration: none;
-    transition: filter 0.2s ease, transform 0.18s ease;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-}
-
-.hero-cta-primary:hover {
-    filter: brightness(1.12);
-    transform: translateY(-1px);
-}
-
-.hero-cta-ghost {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.75rem 1.4rem;
-    border-radius: 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #fff;
-    text-decoration: none;
-    border: 1.5px solid rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(4px);
-    background: rgba(255, 255, 255, 0.08);
-    transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.hero-cta-ghost:hover {
-    background: rgba(255, 255, 255, 0.18);
-    border-color: rgba(255, 255, 255, 0.7);
-}
-
-/* ── Arrow controls ──────────────────────────────────────────────────────── */
-.hero-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    color: #fff;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.18s ease;
-}
-
-.hero-arrow:hover {
-    background: rgba(255, 255, 255, 0.26);
-    transform: translateY(-50%) scale(1.05);
-}
-
-.hero-arrow--left  { left:  clamp(0.75rem, 2.5vw, 2rem); }
-.hero-arrow--right { right: clamp(0.75rem, 2.5vw, 2rem); }
-
-/* ── Dot indicators ──────────────────────────────────────────────────────── */
-.hero-dots {
-    position: absolute;
-    bottom: 1.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 20;
-    display: flex;
-    gap: 0.45rem;
-    align-items: center;
-}
-
-.hero-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 9999px;
-    background: rgba(255, 255, 255, 0.35);
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    transition: width 0.3s ease, background 0.3s ease;
-}
-
-.hero-dot--active {
-    width: 22px;
-    /* background set inline via accentColor */
-}
-
-/* ── Progress bar ────────────────────────────────────────────────────────── */
-.hero-progress-track {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: rgba(255, 255, 255, 0.12);
-    z-index: 25;
-}
-
-.hero-progress-bar {
-    height: 100%;
-    width: 0;
-    animation: hero-progress linear forwards;
-}
-
-@keyframes hero-progress {
-    from { width: 0%; }
-    to   { width: 100%; }
-}
-
-/* ── Responsive adjustments ──────────────────────────────────────────────── */
-@media (max-width: 768px) {
-    .hero-carousel {
-        height: 72vh;
-        min-height: 400px;
-    }
-
-    .hero-inner {
-        text-align: center;
-        max-width: 100%;
-        padding: 0 1.25rem;
-    }
-
-    .hero-sub {
-        max-width: 100%;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .hero-ctas {
-        justify-content: center;
-    }
-
-    .hero-arrow {
-        width: 2.2rem;
-        height: 2.2rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .hero-carousel {
-        height: 65vh;
-        min-height: 360px;
-    }
-
-    .hero-badge {
-        font-size: 0.58rem;
-    }
-
-    .hero-cta-primary,
-    .hero-cta-ghost {
-        padding: 0.65rem 1.1rem;
-        font-size: 0.7rem;
-    }
-}
-
-/* ── Admin Dashboard — No Radius Override ────────────────────────── */
-.admin-dashboard * {
-    border-radius: 0px !important;
+	::selection {
+		background: var(--accent);
+		color: var(--accent-foreground);
+	}
 }

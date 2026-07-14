@@ -2,52 +2,39 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\PermissionRegistrar;
 
 class PermissionSeeder extends Seeder
 {
     /**
-     * Simplified POS permission model.
-     *
-     * "view-*"   = read-only access to the module
-     * "manage-*" = full CRUD access to the module
+     * Run the database seeds.
      */
     public function run(): void
     {
-        // Reset Spatie's permission cache so changes take effect immediately
-        app()[PermissionRegistrar::class]->forgetCachedPermissions();
-
         $permissions = [
-            'view-dashboard',
-            'manage-pos',
-            'manage-products',
-            'manage-variants',
-            'manage-inventory',
-            'manage-orders',
-            'manage-payments',
-            'manage-customers',
-            'manage-staff',
-            'manage-roles',
-            'view-notifications',
-            'view-reports',
-            'manage-settings',
+            'role-list',
+            'role-create',
+            'role-edit',
+            'role-delete',
+
+            'user-list',
+            'user-create',
+            'user-edit',
+            'user-delete',
+
+            'category-list',
+            'category-create',
+            'category-edit',
+            'category-delete',
         ];
 
-        foreach ($permissions as $permissionName) {
-            Permission::firstOrCreate(
-                ['name' => $permissionName, 'guard_name' => 'web']
-            );
+        foreach ($permissions as $permission) {
+            $old_permission = Permission::where('name', $permission)->first();
+            if (!$old_permission) {
+                Permission::create(['name' => $permission]);
+            }
         }
-
-        // Remove legacy CRUD permissions that are no longer used
-        $legacyPermissions = [
-            'role-list', 'role-create', 'role-edit', 'role-delete',
-            'user-list', 'user-create', 'user-edit', 'user-delete',
-            'category-list', 'category-create', 'category-edit', 'category-delete',
-        ];
-
-        Permission::whereIn('name', $legacyPermissions)->delete();
     }
 }

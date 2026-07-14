@@ -26,12 +26,6 @@ class LoginRequest extends FormRequest
      */
     public function rules(): array
     {
-        if ($this->filled('2fa_code')) {
-            return [
-                '2fa_code' => ['required', 'string'],
-            ];
-        }
-
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],

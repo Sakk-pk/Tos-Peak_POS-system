@@ -40,7 +40,7 @@ class CatalogSettingsController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        return Inertia::render('Admin/CatalogSettings/CatalogSettingsPage', [
+        return Inertia::render('CatalogSettings/CatalogSettingsPage', [
             'catalogData' => [
                 'categories' => $categories,
                 'subCategories' => $subCategories,
@@ -110,25 +110,6 @@ class CatalogSettingsController extends Controller
 
     public function update(Request $request, string $tab, int $id): RedirectResponse
     {
-        if ($tab === 'sub_categories') {
-            $validated = $request->validate([
-                'name' => ['required', 'string', 'min:2', 'max:255'],
-                'parent_name' => ['required', 'exists:categories,id'],
-            ]);
-
-            $item = CatalogAttribute::query()
-                ->where('type', 'sub_category')
-                ->where('id', $id)
-                ->firstOrFail();
-
-            $item->update([
-                'name' => $validated['name'],
-                'category_id' => (int) $validated['parent_name'],
-            ]);
-
-            return back()->with('success', 'Sub-category updated successfully.');
-        }
-
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:255'],
         ]);

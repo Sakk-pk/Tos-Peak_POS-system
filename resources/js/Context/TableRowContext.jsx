@@ -4,15 +4,11 @@ const TableRowContext = createContext({
     rowDensity: 'comfortable',
     setRowDensity: () => {},
     classes: {
-        row: 'group transition-colors duration-200',
-        rowContiguous: 'group border-b border-[#E5E7EB] hover:bg-gray-50/30 transition-colors duration-200 last:border-b-0',
-        cellY: 'py-3',
-        actionBase: 'inline-flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200 bg-transparent',
-        editAction: 'text-gray-400 hover:text-neutral-900 hover:bg-neutral-50',
-        deleteAction: 'text-gray-400 hover:text-red-650 hover:text-red-600 hover:bg-red-50',
-        cellFirst: 'bg-white border-y border-l border-[#E5E7EB] rounded-l-xl overflow-hidden',
-        cellMiddle: 'bg-white border-y border-[#E5E7EB]',
-        cellLast: 'bg-white border-y border-r border-[#E5E7EB] rounded-r-xl',
+        row: 'group border-b border-black/5 transition-all duration-200 ease-out hover:-translate-y-px hover:bg-white hover:shadow-[0_10px_28px_rgba(0,0,0,0.04)] last:border-b-0',
+        cellY: 'py-4',
+        actionBase: 'inline-flex h-9 w-9 items-center justify-center rounded-full border bg-white transition-all',
+        editAction: 'border-black/8 text-black/55 hover:border-black/15 hover:bg-black/5 hover:text-black',
+        deleteAction: 'border-red-100 text-red-500/70 hover:border-red-200 hover:bg-red-50/80 hover:text-red-600',
     },
 });
 
@@ -20,18 +16,14 @@ export function TableRowProvider({ children }) {
     const [rowDensity, setRowDensity] = useState('comfortable');
 
     const classes = useMemo(() => {
-        const cellY = rowDensity === 'compact' ? 'py-2' : 'py-3';
+        const cellY = rowDensity === 'compact' ? 'py-3' : 'py-4';
 
         return {
-            row: 'group transition-colors duration-200',
-            rowContiguous: 'group border-b border-[#E5E7EB] hover:bg-gray-50/30 transition-colors duration-200 last:border-b-0',
+            row: 'group border-b border-black/5 transition-all duration-200 ease-out hover:-translate-y-px hover:bg-white hover:shadow-[0_10px_28px_rgba(0,0,0,0.04)] last:border-b-0',
             cellY,
-            actionBase: 'inline-flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200 bg-transparent',
-            editAction: 'text-gray-400 hover:text-neutral-900 hover:bg-neutral-50',
-            deleteAction: 'text-gray-400 hover:text-red-650 hover:text-red-600 hover:bg-red-50',
-            cellFirst: 'bg-white border-y border-l border-[#E5E7EB] rounded-l-xl overflow-hidden',
-            cellMiddle: 'bg-white border-y border-[#E5E7EB]',
-            cellLast: 'bg-white border-y border-r border-[#E5E7EB] rounded-r-xl',
+            actionBase: 'inline-flex h-9 w-9 items-center justify-center rounded-full border bg-white transition-all',
+            editAction: 'border-black/8 text-black/55 hover:border-black/15 hover:bg-black/5 hover:text-black',
+            deleteAction: 'border-red-100 text-red-500/70 hover:border-red-200 hover:bg-red-50/80 hover:text-red-600',
         };
     }, [rowDensity]);
 

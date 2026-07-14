@@ -8,13 +8,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-use Laragear\TwoFactor\TwoFactorAuthentication;
-use Laragear\TwoFactor\Contracts\TwoFactorAuthenticatable;
 
-class User extends Authenticatable implements JWTSubject, TwoFactorAuthenticatable
+class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles, TwoFactorAuthentication;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -24,13 +22,7 @@ class User extends Authenticatable implements JWTSubject, TwoFactorAuthenticatab
     protected $fillable = [
         'name',
         'email',
-        'phone',
-        'visits',
-        'is_team_member',
-        'status',
         'password',
-        'google_id',
-        'avatar',
     ];
 
     /**
@@ -53,7 +45,6 @@ class User extends Authenticatable implements JWTSubject, TwoFactorAuthenticatab
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'is_team_member' => 'boolean',
         ];
     }
 

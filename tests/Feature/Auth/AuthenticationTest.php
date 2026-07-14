@@ -19,28 +19,10 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
-        // A user with no role is treated as a customer → redirected to storefront '/'
         $user = User::factory()->create();
 
         $response = $this->post('/login', [
-            'email'    => $user->email,
-            'password' => 'password',
-        ]);
-
-        $this->assertAuthenticated();
-        $response->assertRedirect('/');
-    }
-
-    public function test_admin_users_are_redirected_to_dashboard(): void
-    {
-        // Create the Admin role (roles are seeded in production, not in test DB)
-        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
-
-        $admin = User::factory()->create(['status' => 'Active']);
-        $admin->assignRole('Admin');
-
-        $response = $this->post('/login', [
-            'email'    => $admin->email,
+            'email' => $user->email,
             'password' => 'password',
         ]);
 

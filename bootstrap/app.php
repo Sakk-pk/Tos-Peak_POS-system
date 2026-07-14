@@ -21,21 +21,15 @@ return Application::configure(basePath: dirname(__DIR__))
 
             'ensureFrontendRequestsAreStateful' => \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'jwt' => \App\Http\Middleware\jwtMiddleware::class,
-            'jwt.auth' => \App\Http\Middleware\jwtMiddleware::class,
         ]);
         
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
-            \App\Http\Middleware\CheckUserStatus::class,
         ]);
 
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ]);
-
-        $middleware->validateCsrfTokens(except: [
-            'api/khqr/webhook',
         ]);
 
         //

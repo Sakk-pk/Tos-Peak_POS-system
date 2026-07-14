@@ -13,27 +13,10 @@ function useSidebar() {
 
 const SidebarProvider = React.forwardRef((props, ref) => {
   const { defaultOpen = true, className, children, ...rest } = props;
-  
-  const [open, setOpen] = React.useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('sidebar_open');
-        return saved !== null ? JSON.parse(saved) : defaultOpen;
-      } catch (_) {
-        return defaultOpen;
-      }
-    }
-    return defaultOpen;
-  });
+  const [open, setOpen] = React.useState(defaultOpen);
   
   const toggleSidebar = React.useCallback(() => {
-    setOpen((prev) => {
-      const nextVal = !prev;
-      try {
-        localStorage.setItem('sidebar_open', JSON.stringify(nextVal));
-      } catch (_) {}
-      return nextVal;
-    });
+    setOpen((prev) => !prev);
   }, []);
   
   return (
@@ -53,7 +36,7 @@ const Sidebar = React.forwardRef((props, ref) => {
   return (
     <div
       ref={ref}
-      className={`flex flex-col h-screen fixed left-0 top-0 bottom-0 z-20 shrink-0 bg-gray-900 text-white transition-all duration-200 ${
+      className={`flex flex-col h-full bg-gray-900 text-white transition-all duration-200 ${
         open ? "w-64 items-start" : "w-20 items-center"
       } ${className}`}
       {...rest}
@@ -83,16 +66,8 @@ SidebarTrigger.displayName = "SidebarTrigger";
 
 const SidebarInset = React.forwardRef((props, ref) => {
   const { className = "", children, ...rest } = props;
-  const { open } = useSidebar();
-  
   return (
-    <main 
-      ref={ref} 
-      className={`flex-1 flex flex-col h-screen overflow-hidden bg-white transition-all duration-200 ${
-        open ? "pl-64" : "pl-20"
-      } ${className}`} 
-      {...rest}
-    >
+    <main ref={ref} className={`flex-1 overflow-auto bg-white ${className}`} {...rest}>
       {children}
     </main>
   );
@@ -191,8 +166,8 @@ const SidebarMenuButton = React.forwardRef((props, ref) => {
   const { asChild, isActive, className = "", children, ...rest } = props;
   const { open } = useSidebar();
 
-  const openClasses = `flex items-center gap-3 w-full px-3.5 py-2.5 rounded-xl text-[12px] font-bold uppercase tracking-wider transition-all duration-200 hover:bg-neutral-800/80 hover:text-white ${isActive ? "bg-neutral-800 text-white font-black shadow-sm" : "text-gray-400"} ${className}`;
-  const closedClasses = `flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 hover:bg-neutral-800/80 hover:text-white ${isActive ? "bg-neutral-800 text-white shadow-sm" : "text-gray-400"} ${className}`;
+  const openClasses = `flex items-center gap-3 w-full px-3 py-2 rounded text-sm transition hover:bg-gray-700 ${isActive ? "bg-white text-black shadow-sm" : "text-gray-300"} ${className}`;
+  const closedClasses = `flex items-center justify-center w-12 h-12 rounded-md transition hover:bg-gray-700 ${isActive ? "bg-white text-black shadow-sm" : "text-gray-300"} ${className}`;
 
   if (asChild && children) {
     return React.cloneElement(children, {

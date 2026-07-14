@@ -9,7 +9,6 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
-use App\Http\Controllers\Api\AuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -34,18 +33,6 @@ Route::middleware('guest')->group(function () {
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
-
-    Route::get('auth/google', [AuthController::class, 'redirectToGoogle'])
-        ->name('google.redirect');
-
-    Route::get('auth/google/callback', [AuthController::class, 'handleGoogleCallback'])
-        ->name('google.callback');
-
-    // Two-factor challenge routes
-    Route::get('two-factor-challenge', [\App\Http\Controllers\Auth\TwoFactorChallengeController::class, 'show'])
-        ->name('2fa.confirm');
-
-    Route::post('two-factor-challenge', [\Laragear\TwoFactor\Http\Controllers\ConfirmTwoFactorCodeController::class, 'confirm']);
 });
 
 Route::middleware('auth')->group(function () {
@@ -69,14 +56,4 @@ Route::middleware('auth')->group(function () {
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
-
-    // Two-factor settings routes
-    Route::post('user/two-factor-authentication', [\App\Http\Controllers\Auth\TwoFactorSettingsController::class, 'store'])
-        ->name('two-factor.enable');
-    Route::post('user/two-factor-confirmation', [\App\Http\Controllers\Auth\TwoFactorSettingsController::class, 'confirm'])
-        ->name('two-factor.confirm');
-    Route::delete('user/two-factor-authentication', [\App\Http\Controllers\Auth\TwoFactorSettingsController::class, 'destroy'])
-        ->name('two-factor.disable');
-    Route::get('user/two-factor-recovery-codes', [\App\Http\Controllers\Auth\TwoFactorSettingsController::class, 'recoveryCodes'])
-        ->name('two-factor.recovery-codes');
 });

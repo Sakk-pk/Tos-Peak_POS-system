@@ -23,14 +23,6 @@ class Product extends Model
         'price',
         'stock',
         'image',
-        'low_stock_threshold',
-        'low_stock_alert_enabled',
-        'last_low_stock_alert_at',
-    ];
-
-    protected $casts = [
-        'low_stock_alert_enabled' => 'boolean',
-        'last_low_stock_alert_at' => 'datetime',
     ];
 
     public function category(): BelongsTo
