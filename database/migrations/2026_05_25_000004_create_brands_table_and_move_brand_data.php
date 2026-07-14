@@ -34,7 +34,9 @@ return new class extends Migration
             ]);
         }
 
-        DB::statement('ALTER TABLE brands AUTO_INCREMENT = ' . ((int) DB::table('brands')->max('id') + 1));
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE brands AUTO_INCREMENT = ' . ((int) DB::table('brands')->max('id') + 1));
+        }
 
         DB::table('catalog_attributes')->where('type', 'brand')->delete();
 
