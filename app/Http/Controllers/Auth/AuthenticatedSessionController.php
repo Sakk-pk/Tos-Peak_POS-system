@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
+use Laragear\TwoFactor\Facades\Auth2FA;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -29,11 +30,51 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        $request->ensureIsNotRateLimited();
 
-        $request->session()->regenerate();
+        $attempt = Auth2FA::redirect(route('2fa.confirm'))
+            ->input('2fa_code')
+            ->attempt(
+                $request->only('email', 'password'),
+                $request->boolean('remember')
+            );
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        if ($attempt) {
+            $user = Auth::user();
+            if ($user) {
+                if ($user->status === 'Inactive') {
+                    Auth::logout();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'email' => 'Your account has been deactivated. Please contact an administrator.',
+                    ]);
+                }
+                $user->increment('visits');
+            }
+            \Illuminate\Support\Facades\RateLimiter::clear($request->throttleKey());
+            $request->session()->regenerate();
+
+            $roleName = $user->roles->first()?->name ?? '';
+
+            // Role-based post-login redirect
+            if ($roleName === 'Admin') {
+                return redirect()->intended('/dashboard');
+            } elseif ($roleName === 'Manager') {
+                return redirect()->intended('/dashboard');
+            } elseif ($roleName === 'Staff') {
+                return redirect()->intended('/point-of-sale');
+            }
+
+            $fallback = $request->input('redirect_to') ?: '/';
+            return redirect()->intended($fallback);
+        }
+
+        \Illuminate\Support\Facades\RateLimiter::hit($request->throttleKey());
+
+        throw \Illuminate\Validation\ValidationException::withMessages([
+            'email' => trans('auth.failed'),
+        ]);
     }
 
     /**
@@ -50,3 +91,4 @@ class AuthenticatedSessionController extends Controller
         return redirect('/');
     }
 }
+

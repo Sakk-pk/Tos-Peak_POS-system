@@ -13,6 +13,9 @@ class jwtMiddleware
     {
         try {
             $user = JWTAuth::parseToken()->authenticate();
+            if ($user && $user->status === 'Inactive') {
+                return response()->json(['message' => 'Your account has been deactivated. Please contact an administrator.'], 403);
+            }
         } catch (Exception $e) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }

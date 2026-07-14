@@ -7,8 +7,11 @@
     "require": {
         "php": "^8.2",
         "inertiajs/inertia-laravel": "^1.0",
+        "khqr-gateway/bakong-khqr-php": "^1.0",
+        "laragear/two-factor": "^3.0",
         "laravel/framework": "^11.9",
         "laravel/sanctum": "^4.0",
+        "laravel/socialite": "^5.27",
         "laravel/tinker": "^2.9",
         "spatie/laravel-permission": "^6.17",
         "tightenco/ziggy": "^2.0",
