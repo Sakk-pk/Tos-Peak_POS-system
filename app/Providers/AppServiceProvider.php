@@ -37,7 +37,13 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Product::observe(\App\Observers\ProductObserver::class);
 
         // Dynamically override cached database config at runtime using active environment variables
+        $connectionName = getenv('DB_CONNECTION') ?: 'mysql';
+        if ($connectionName === 'DB_CONNECTION') {
+            $connectionName = 'mysql';
+        }
+        
         config([
+            'database.default' => $connectionName,
             'database.connections.mysql.host' => getenv('DB_HOST') ?: (getenv('MYSQL_HOST') ?: (getenv('MYSQLHOST') ?: '127.0.0.1')),
             'database.connections.mysql.port' => getenv('DB_PORT') ?: (getenv('MYSQL_PORT') ?: (getenv('MYSQLPORT') ?: '3306')),
             'database.connections.mysql.database' => getenv('DB_DATABASE') ?: (getenv('MYSQL_DATABASE') ?: (getenv('MYSQLDATABASE') ?: 'laravel')),
