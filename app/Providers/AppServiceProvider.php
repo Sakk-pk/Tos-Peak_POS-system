@@ -42,19 +42,24 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        // Helper to retrieve environment variables from $_ENV (local) or getenv() (production)
+        $getEnvVar = function ($key) {
+            return ($_ENV[$key] ?? '') ?: (getenv($key) ?: '');
+        };
+
         // Dynamically override cached database config at runtime using active environment variables
-        $connectionName = ($_ENV['DB_CONNECTION'] ?? '') ?: 'mysql';
+        $connectionName = $getEnvVar('DB_CONNECTION') ?: 'mysql';
         if ($connectionName === 'DB_CONNECTION') {
             $connectionName = 'mysql';
         }
         
         config([
             'database.default' => $connectionName,
-            'database.connections.mysql.host' => ($_ENV['DB_HOST'] ?? '') ?: (($_ENV['MYSQL_HOST'] ?? '') ?: (($_ENV['MYSQLHOST'] ?? '') ?: '127.0.0.1')),
-            'database.connections.mysql.port' => ($_ENV['DB_PORT'] ?? '') ?: (($_ENV['MYSQL_PORT'] ?? '') ?: (($_ENV['MYSQLPORT'] ?? '') ?: '3306')),
-            'database.connections.mysql.database' => ($_ENV['DB_DATABASE'] ?? '') ?: (($_ENV['MYSQL_DATABASE'] ?? '') ?: (($_ENV['MYSQLDATABASE'] ?? '') ?: 'laravel')),
-            'database.connections.mysql.username' => ($_ENV['DB_USERNAME'] ?? '') ?: (($_ENV['MYSQL_USER'] ?? '') ?: (($_ENV['MYSQLUSER'] ?? '') ?: 'root')),
-            'database.connections.mysql.password' => ($_ENV['DB_PASSWORD'] ?? '') ?: (($_ENV['MYSQL_PASSWORD'] ?? '') ?: (($_ENV['MYSQLPASSWORD'] ?? '') ?: '')),
+            'database.connections.mysql.host' => $getEnvVar('DB_HOST') ?: ($getEnvVar('MYSQL_HOST') ?: ($getEnvVar('MYSQLHOST') ?: '127.0.0.1')),
+            'database.connections.mysql.port' => $getEnvVar('DB_PORT') ?: ($getEnvVar('MYSQL_PORT') ?: ($getEnvVar('MYSQLPORT') ?: '3306')),
+            'database.connections.mysql.database' => $getEnvVar('DB_DATABASE') ?: ($getEnvVar('MYSQL_DATABASE') ?: ($getEnvVar('MYSQLDATABASE') ?: 'laravel')),
+            'database.connections.mysql.username' => $getEnvVar('DB_USERNAME') ?: ($getEnvVar('MYSQL_USER') ?: ($getEnvVar('MYSQLUSER') ?: 'root')),
+            'database.connections.mysql.password' => $getEnvVar('DB_PASSWORD') ?: ($getEnvVar('MYSQL_PASSWORD') ?: ($getEnvVar('MYSQLPASSWORD') ?: '')),
         ]);
 
         // Self-heal: Automatically migrate and seed database if products table is missing or empty
