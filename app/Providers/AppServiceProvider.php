@@ -43,18 +43,18 @@ class AppServiceProvider extends ServiceProvider
         }
 
         // Dynamically override cached database config at runtime using active environment variables
-        $connectionName = getenv('DB_CONNECTION') ?: 'mysql';
+        $connectionName = ($_ENV['DB_CONNECTION'] ?? '') ?: 'mysql';
         if ($connectionName === 'DB_CONNECTION') {
             $connectionName = 'mysql';
         }
         
         config([
             'database.default' => $connectionName,
-            'database.connections.mysql.host' => getenv('DB_HOST') ?: (getenv('MYSQL_HOST') ?: (getenv('MYSQLHOST') ?: '127.0.0.1')),
-            'database.connections.mysql.port' => getenv('DB_PORT') ?: (getenv('MYSQL_PORT') ?: (getenv('MYSQLPORT') ?: '3306')),
-            'database.connections.mysql.database' => getenv('DB_DATABASE') ?: (getenv('MYSQL_DATABASE') ?: (getenv('MYSQLDATABASE') ?: 'laravel')),
-            'database.connections.mysql.username' => getenv('DB_USERNAME') ?: (getenv('MYSQL_USER') ?: (getenv('MYSQLUSER') ?: 'root')),
-            'database.connections.mysql.password' => getenv('DB_PASSWORD') ?: (getenv('MYSQL_PASSWORD') ?: (getenv('MYSQLPASSWORD') ?: '')),
+            'database.connections.mysql.host' => ($_ENV['DB_HOST'] ?? '') ?: (($_ENV['MYSQL_HOST'] ?? '') ?: (($_ENV['MYSQLHOST'] ?? '') ?: '127.0.0.1')),
+            'database.connections.mysql.port' => ($_ENV['DB_PORT'] ?? '') ?: (($_ENV['MYSQL_PORT'] ?? '') ?: (($_ENV['MYSQLPORT'] ?? '') ?: '3306')),
+            'database.connections.mysql.database' => ($_ENV['DB_DATABASE'] ?? '') ?: (($_ENV['MYSQL_DATABASE'] ?? '') ?: (($_ENV['MYSQLDATABASE'] ?? '') ?: 'laravel')),
+            'database.connections.mysql.username' => ($_ENV['DB_USERNAME'] ?? '') ?: (($_ENV['MYSQL_USER'] ?? '') ?: (($_ENV['MYSQLUSER'] ?? '') ?: 'root')),
+            'database.connections.mysql.password' => ($_ENV['DB_PASSWORD'] ?? '') ?: (($_ENV['MYSQL_PASSWORD'] ?? '') ?: (($_ENV['MYSQLPASSWORD'] ?? '') ?: '')),
         ]);
 
         // Self-heal: Automatically migrate and seed database if products table is missing or empty
