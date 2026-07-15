@@ -38,11 +38,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Dynamically override cached database config at runtime using active environment variables
         config([
-            'database.connections.mysql.host' => env('DB_HOST') ?: (env('MYSQL_HOST') ?: (env('MYSQLHOST') ?: '127.0.0.1')),
-            'database.connections.mysql.port' => env('DB_PORT') ?: (env('MYSQL_PORT') ?: (env('MYSQLPORT') ?: '3306')),
-            'database.connections.mysql.database' => env('DB_DATABASE') ?: (env('MYSQL_DATABASE') ?: (env('MYSQLDATABASE') ?: 'laravel')),
-            'database.connections.mysql.username' => env('DB_USERNAME') ?: (env('MYSQL_USER') ?: (env('MYSQLUSER') ?: 'root')),
-            'database.connections.mysql.password' => env('DB_PASSWORD') ?: (env('MYSQL_PASSWORD') ?: (env('MYSQLPASSWORD') ?: '')),
+            'database.connections.mysql.host' => getenv('DB_HOST') ?: (getenv('MYSQL_HOST') ?: (getenv('MYSQLHOST') ?: '127.0.0.1')),
+            'database.connections.mysql.port' => getenv('DB_PORT') ?: (getenv('MYSQL_PORT') ?: (getenv('MYSQLPORT') ?: '3306')),
+            'database.connections.mysql.database' => getenv('DB_DATABASE') ?: (getenv('MYSQL_DATABASE') ?: (getenv('MYSQLDATABASE') ?: 'laravel')),
+            'database.connections.mysql.username' => getenv('DB_USERNAME') ?: (getenv('MYSQL_USER') ?: (getenv('MYSQLUSER') ?: 'root')),
+            'database.connections.mysql.password' => getenv('DB_PASSWORD') ?: (getenv('MYSQL_PASSWORD') ?: (getenv('MYSQLPASSWORD') ?: '')),
         ]);
     }
 }
