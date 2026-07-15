@@ -60,6 +60,11 @@ class AppServiceProvider extends ServiceProvider
             'database.connections.mysql.database' => $getEnvVar('DB_DATABASE') ?: ($getEnvVar('MYSQL_DATABASE') ?: ($getEnvVar('MYSQLDATABASE') ?: 'laravel')),
             'database.connections.mysql.username' => $getEnvVar('DB_USERNAME') ?: ($getEnvVar('MYSQL_USER') ?: ($getEnvVar('MYSQLUSER') ?: 'root')),
             'database.connections.mysql.password' => $getEnvVar('DB_PASSWORD') ?: ($getEnvVar('MYSQL_PASSWORD') ?: ($getEnvVar('MYSQLPASSWORD') ?: '')),
+            
+            // Override cached Google Auth credentials at runtime
+            'services.google.client_id' => $getEnvVar('GOOGLE_CLIENT_ID') ?: null,
+            'services.google.client_secret' => $getEnvVar('GOOGLE_CLIENT_SECRET') ?: null,
+            'services.google.redirect' => $getEnvVar('GOOGLE_REDIRECT_URI') ?: (($getEnvVar('APP_URL') ?: 'https://tos-peakpos-system-production.up.railway.app') . '/auth/google/callback'),
         ]);
 
         // Self-heal: Automatically migrate and seed database if products table is missing or empty
