@@ -39,7 +39,7 @@ test.describe('Authentication & Route Protection', () => {
     await page.locator('button[type="submit"], button:has-text("SIGN IN")').click();
     
     // Check for error banner or message
-    const errorAlert = page.locator('div:has-text("incorrect"), div:has-text("fail"), div[role="alert"]').first();
+    const errorAlert = page.locator('p:has-text("credentials"), p:has-text("match"), .text-red-600, .text-red-500').first();
     await expect(errorAlert).toBeVisible();
   });
 
