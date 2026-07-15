@@ -107,11 +107,11 @@ export default function InventoryProductRow({
         >
             {/* 1. Product details */}
             <td className={cellDetailsClass}>
-                <div className="flex items-center h-24 gap-4">
+                <div className="flex items-center h-28 gap-4">
                     {/* Thumbnail */}
                     <div 
                         onClick={onView}
-                        className="w-24 h-24 shrink-0 bg-gray-50 flex items-center justify-center rounded-xl border border-black/[0.06] shadow-sm p-2 cursor-pointer hover:bg-gray-100 transition select-none overflow-hidden"
+                        className="w-28 h-28 shrink-0 bg-white flex items-center justify-center p-3 border-r border-[#E5E7EB] cursor-pointer hover:bg-[#F9FAFB] transition select-none"
                     >
                         {imageSrc ? (
                             <img
@@ -121,8 +121,9 @@ export default function InventoryProductRow({
                                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
                             />
                         ) : (
-                            <div className="h-16 w-16 bg-gray-200/40 border border-black/5 flex flex-col items-center justify-center p-2 text-center text-[8px] font-mono tracking-tighter text-gray-400 uppercase select-none rounded">
-                                <span className="font-extrabold block text-[7px]">NO IMG</span>
+                            <div className="h-20 w-20 bg-gray-200/40 border border-black/5 flex flex-col items-center justify-center p-2 text-center text-[8px] font-mono tracking-tighter text-gray-400 uppercase select-none rounded">
+                                <span className="font-extrabold block">TOS-PEAK</span>
+                                <span className="mt-0.5 text-[6px]">No Product Image</span>
                             </div>
                         )}
                     </div>

@@ -72,7 +72,7 @@ const SidebarTrigger = React.forwardRef((props, ref) => {
     <button
       ref={ref}
       onClick={toggleSidebar}
-      className={`p-2 hover:bg-gray-700 rounded transition ${className}`}
+      className={`p-2 hover:bg-gray-700 rounded-none transition ${className}`}
       {...rest}
     >
       <PanelLeft className="w-5 h-5" />
@@ -191,8 +191,8 @@ const SidebarMenuButton = React.forwardRef((props, ref) => {
   const { asChild, isActive, className = "", children, ...rest } = props;
   const { open } = useSidebar();
 
-  const openClasses = `flex items-center gap-3 w-full px-3.5 py-2.5 rounded-xl text-[12px] font-bold uppercase tracking-wider transition-all duration-200 hover:bg-neutral-800/80 hover:text-white ${isActive ? "bg-neutral-800 text-white font-black shadow-sm" : "text-gray-400"} ${className}`;
-  const closedClasses = `flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 hover:bg-neutral-800/80 hover:text-white ${isActive ? "bg-neutral-800 text-white shadow-sm" : "text-gray-400"} ${className}`;
+  const openClasses = `flex items-center gap-3 w-full px-3.5 py-2.5 rounded-none text-[12px] font-bold uppercase tracking-wider transition-all duration-200 hover:bg-neutral-800/80 hover:text-white ${isActive ? "bg-neutral-800 text-white font-black" : "text-gray-400"} ${className}`;
+  const closedClasses = `flex items-center justify-center w-11 h-11 rounded-none transition-all duration-200 hover:bg-neutral-800/80 hover:text-white ${isActive ? "bg-neutral-800 text-white" : "text-gray-400"} ${className}`;
 
   if (asChild && children) {
     return React.cloneElement(children, {

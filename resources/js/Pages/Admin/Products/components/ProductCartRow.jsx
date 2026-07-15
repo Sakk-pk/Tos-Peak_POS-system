@@ -73,7 +73,7 @@ export default function ProductCartRow({ product, formatPrice, onEdit, onDelete,
                     {/* Thumbnail */}
                     <div 
                         onClick={onView}
-                        className="w-28 h-28 shrink-0 bg-[#F6F6F6] flex items-center justify-center p-3 border-r border-[#E5E7EB] cursor-pointer hover:bg-[#F0F0F0] transition select-none"
+                        className="w-28 h-28 shrink-0 bg-white flex items-center justify-center p-3 border-r border-[#E5E7EB] cursor-pointer hover:bg-[#F9FAFB] transition select-none"
                     >
                         {imageSrc ? (
                             <img
@@ -104,7 +104,7 @@ export default function ProductCartRow({ product, formatPrice, onEdit, onDelete,
                             {product.name}
                         </h4>
                         {product.description && (
-                            <p className="max-w-[340px] text-xs font-semibold text-gray-400 truncate mt-1" title={product.description}>
+                            <p className="max-w-[340px] text-xs font-semibold text-gray-450 truncate mt-1" title={product.description}>
                                 {subCategoryName ? `${subCategoryName} • ` : ''}{product.description}
                             </p>
                         )}
@@ -114,60 +114,53 @@ export default function ProductCartRow({ product, formatPrice, onEdit, onDelete,
 
             {/* 2. Category */}
             <td className={`px-6 align-middle ${cellMiddleClass}`}>
-                <Badge variant="default">
+                <Badge variant="info" className="uppercase font-bold tracking-wider">
                     {categoryName || 'Uncategorized'}
                 </Badge>
             </td>
 
             {/* 3. Base Price */}
-            <td className={`px-6 align-middle text-sm font-black text-gray-900 font-mono tracking-tight ${cellMiddleClass}`}>
-                {formatPrice(product.price)}
+            <td className={`px-6 align-middle ${cellMiddleClass}`}>
+                <div className="flex items-baseline gap-0.5">
+                    <span className="text-[10px] font-black text-gray-400 font-sans tracking-wide uppercase select-none mr-0.5">USD</span>
+                    <span className="text-base font-black text-gray-900 font-mono tracking-tight">
+                        {parseFloat(product.price).toFixed(2)}
+                    </span>
+                </div>
             </td>
 
-            {/* 4. Catalog Options (Colors, Sizes, Stock) */}
+            {/* 4. Catalog Options */}
             <td className={`px-6 align-middle ${cellMiddleClass}`}>
-                <div className="flex flex-col gap-2 justify-center">
-                    {/* Colors */}
-                    {uniqueColors.length > 0 && (
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                            <div className="flex items-center gap-1">
-                                {uniqueColors.map((color, idx) => (
-                                    <div
-                                        key={color.id || idx}
-                                        className="h-3 w-3 rounded-full border border-black/15 shadow-sm shrink-0"
-                                        style={{ backgroundColor: color.value }}
-                                        title={color.name}
-                                    />
-                                ))}
-                            </div>
-                            <span className="text-[10px] text-gray-400 font-bold leading-none truncate max-w-[120px] uppercase">
-                                {uniqueColors.map(c => c.name).join(', ')}
-                            </span>
-                        </div>
-                    )}
- 
-                    {/* Sizes and Stock status row */}
-                    <div className="flex items-center gap-2 select-none flex-wrap">
-                        {/* Sizes Pill */}
-                        {uniqueSizes.length > 0 && (
-                            <Badge variant="default" size="sm" className="font-mono">
-                                <Tag size={10} className="stroke-[2.5] mr-1" />
-                                {sizesDisplay}
-                            </Badge>
-                        )}
- 
-                        {/* Stock Level with color indicator status chip */}
-                        <Badge 
-                            variant={isOutOfStock ? 'danger' : isLowStock ? 'warning' : 'success'} 
-                            size="sm"
-                            className={isLowStock ? 'animate-pulse' : ''}
+                <div className="flex flex-wrap items-center gap-2 max-w-[280px]">
+                    {/* Color tag chips */}
+                    {uniqueColors.map((color, idx) => (
+                        <span 
+                            key={color.id || idx} 
+                            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-gray-50/50 border border-black/[0.04] text-[10px] font-bold text-gray-600 uppercase"
                         >
-                            <span className={`w-1 h-1 rounded-full mr-1.5 ${
-                                isOutOfStock ? 'bg-red-500' : isLowStock ? 'bg-amber-500' : 'bg-emerald-500'
-                            }`} />
-                            {isOutOfStock ? 'OUT' : `${totalStock} units`}
-                        </Badge>
-                    </div>
+                            <span className="h-2 w-2 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: color.value }} />
+                            {color.name}
+                        </span>
+                    ))}
+
+                    {/* Sizes tag chips */}
+                    {uniqueSizes.length > 0 && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-gray-50/50 border border-black/[0.04] text-[10px] font-mono font-bold text-gray-500">
+                            SZ {uniqueSizes.join(', ')}
+                        </span>
+                    )}
+
+                    {/* Stock badge chip */}
+                    <Badge 
+                        variant={isOutOfStock ? 'danger' : isLowStock ? 'warning' : 'success'} 
+                        size="sm"
+                        className={isLowStock ? 'animate-pulse' : ''}
+                    >
+                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                            isOutOfStock ? 'bg-red-500' : isLowStock ? 'bg-amber-500' : 'bg-emerald-500'
+                        }`} />
+                        {isOutOfStock ? 'Out of Stock' : `${totalStock} units`}
+                    </Badge>
                 </div>
             </td>
         </TableCardRow>

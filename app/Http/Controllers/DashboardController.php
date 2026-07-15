@@ -16,7 +16,8 @@ class DashboardController extends Controller
         $today = Carbon::today();
 
         $totalUsers = User::count();
-        $totalProducts = Product::count();
+        // Use total stock units so dashboard 'Products' matches inventory totals
+        $totalProducts = Product::sum('stock');
         $totalCategories = Category::count();
         
         $defaultThreshold = (int) config('inventory.low_stock_threshold', 15);
@@ -73,7 +74,9 @@ class DashboardController extends Controller
                         'id' => 2,
                         'title' => 'Products',
                         'value' => (string) $totalProducts,
-                        'delta' => $dailyDelta,
+                        // Delta was based on created products; when showing total stock
+                        // the previous daily delta isn't meaningful — omit it.
+                        'delta' => null,
                     ],
                     [
                         'id' => 3,

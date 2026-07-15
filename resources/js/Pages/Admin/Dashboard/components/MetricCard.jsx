@@ -1,40 +1,39 @@
 import React from 'react';
-import { TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
-export default function MetricCard({ icon: Icon, label, value, detail, delta }) {
-    const isPositive = delta && !delta.startsWith('-');
+export default function MetricCard({ icon: Icon, label, value, delta, iconBg, iconColor }) {
+  const isPositive = delta && !delta.startsWith('-');
+  const isNeedsReview = label === 'Low Stock';
 
-    return (
-        <div className="rounded-2xl border border-black/[0.06] bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.015)] transition-all duration-300 hover:shadow-[0_12px_32px_rgba(0,0,0,0.05)] hover:border-black/[0.1] hover:-translate-y-0.5 select-none">
-            <div className="flex items-start justify-between">
-                <div className="space-y-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 font-display">{label}</p>
-                    <h3 className="text-3xl font-black tracking-tight text-black font-display leading-none">{value}</h3>
-                    {detail && (
-                        <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mt-1">{detail}</p>
-                    )}
-                </div>
-                <div className="flex flex-col items-end justify-between h-full min-h-[64px]">
-                    <div className="h-10 w-10 rounded-xl bg-gray-50 text-black border border-black/[0.04] flex items-center justify-center shrink-0">
-                        <Icon size={18} strokeWidth={2.5} />
-                    </div>
+  return (
+    <div className="rounded-none border border-black/[0.08] bg-white p-4 transition-colors duration-200 select-none flex items-center justify-between">
+      <div className="flex flex-col">
+        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-sans">
+          {label}
+        </span>
+        <h3 className="text-xl font-extrabold text-gray-900 leading-none mt-2 font-sans tracking-tight">
+          {value}
+        </h3>
+        
+        {delta && (
+          <div className="flex items-center gap-0.5 mt-2.5">
+            {isNeedsReview ? (
+              <span className="text-[9px] font-bold text-amber-700 border border-amber-200 bg-amber-50/50 px-1.5 py-0.5 rounded-none uppercase tracking-wider">
+                {delta}
+              </span>
+            ) : (
+              <span className="text-[9px] font-bold text-emerald-600 border border-emerald-200 bg-emerald-50/50 px-1.5 py-0.5 rounded-none uppercase tracking-wider flex items-center gap-0.5">
+                <ArrowUpRight size={10} className="stroke-[2.5]" />
+                {delta}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
-                    {delta ? (
-                        <span className={`inline-flex items-center gap-0.5 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                            isPositive 
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                                : 'bg-rose-50 text-rose-700 border-rose-200'
-                        }`}>
-                            {isPositive ? <ArrowUpRight size={11} className="stroke-[2.5]" /> : <ArrowDownRight size={11} className="stroke-[2.5]" />}
-                            {delta}
-                        </span>
-                    ) : (
-                        <span className="inline-flex items-center text-xs text-gray-300">
-                            <TrendingUp size={12} />
-                        </span>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
+      <div className={`h-10 w-10 rounded-none flex items-center justify-center shrink-0 border border-black/[0.05] ${iconBg}`}>
+        <Icon size={18} className={iconColor} strokeWidth={2} />
+      </div>
+    </div>
+  );
 }

@@ -6,20 +6,10 @@ export default function TableContainer({
     variant = 'contiguous',
     ...props
 }) {
-    if (variant === 'separated') {
-        return (
-            <div className={`w-full space-y-3 ${className}`}>
-                <table className={`w-full text-left align-middle`} {...props}>
-                    {children}
-                </table>
-            </div>
-        );
-    }
-
     return (
-        <div className={`w-full overflow-hidden bg-white border border-[#E5E7EB] rounded-2xl shadow-sm ${className}`}>
+        <div className={`w-full overflow-hidden ${variant === 'separated' ? 'bg-transparent border border-[#E5E7EB] rounded-2xl p-4 shadow-sm' : 'bg-white border border-[#E5E7EB] rounded-2xl shadow-sm'} ${className}`}>
             <div className="overflow-x-auto">
-                <table className={`w-full min-w-[800px] text-left align-middle border-collapse`} {...props}>
+                <table className={`w-full min-w-[800px] text-left align-middle ${variant === 'separated' ? 'border-separate border-spacing-x-0 border-spacing-y-4' : 'border-collapse'}`} {...props}>
                     {children}
                 </table>
             </div>

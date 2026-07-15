@@ -7,12 +7,12 @@ const TableRowContext = createContext({
         row: 'group transition-colors duration-200',
         rowContiguous: 'group border-b border-[#E5E7EB] hover:bg-gray-50/30 transition-colors duration-200 last:border-b-0',
         cellY: 'py-3',
-        actionBase: 'inline-flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200 bg-transparent',
-        editAction: 'text-gray-400 hover:text-neutral-900 hover:bg-neutral-50',
-        deleteAction: 'text-gray-400 hover:text-red-650 hover:text-red-600 hover:bg-red-50',
-        cellFirst: 'bg-white border-y border-l border-[#E5E7EB] rounded-l-xl overflow-hidden',
-        cellMiddle: 'bg-white border-y border-[#E5E7EB]',
-        cellLast: 'bg-white border-y border-r border-[#E5E7EB] rounded-r-xl',
+        actionBase: 'inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border border-black/[0.06] bg-white shadow-sm transition-all duration-200 text-gray-400',
+        editAction: 'hover:bg-neutral-50 hover:text-neutral-950',
+        deleteAction: 'border-red-100 hover:bg-red-50 hover:text-red-650',
+        cellFirst: 'bg-white border-y border-l border-black/[0.05] rounded-l-2xl overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-300 group-hover:border-black/10 group-hover:shadow-[0_12px_24px_rgba(0,0,0,0.04)] group-hover:-translate-y-[2px]',
+        cellMiddle: 'bg-white border-y border-black/[0.05] transition-all duration-300 group-hover:border-black/10 group-hover:-translate-y-[2px]',
+        cellLast: 'bg-white border-y border-r border-black/[0.05] rounded-r-2xl shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-300 group-hover:border-black/10 group-hover:shadow-[0_12px_24px_rgba(0,0,0,0.04)] group-hover:-translate-y-[2px]',
     },
 });
 
@@ -26,12 +26,12 @@ export function TableRowProvider({ children }) {
             row: 'group transition-colors duration-200',
             rowContiguous: 'group border-b border-[#E5E7EB] hover:bg-gray-50/30 transition-colors duration-200 last:border-b-0',
             cellY,
-            actionBase: 'inline-flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200 bg-transparent',
-            editAction: 'text-gray-400 hover:text-neutral-900 hover:bg-neutral-50',
-            deleteAction: 'text-gray-400 hover:text-red-650 hover:text-red-600 hover:bg-red-50',
-            cellFirst: 'bg-white border-y border-l border-[#E5E7EB] rounded-l-xl overflow-hidden',
-            cellMiddle: 'bg-white border-y border-[#E5E7EB]',
-            cellLast: 'bg-white border-y border-r border-[#E5E7EB] rounded-r-xl',
+            actionBase: 'inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border border-black/[0.06] bg-white shadow-sm transition-all duration-200 text-gray-400',
+            editAction: 'hover:bg-neutral-50 hover:text-neutral-950',
+            deleteAction: 'border-red-100 hover:bg-red-50 hover:text-red-650',
+            cellFirst: 'bg-white border-y border-l border-black/[0.05] rounded-l-2xl overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-300 group-hover:border-black/10 group-hover:shadow-[0_12px_24px_rgba(0,0,0,0.04)] group-hover:-translate-y-[2px]',
+            cellMiddle: 'bg-white border-y border-black/[0.05] transition-all duration-300 group-hover:border-black/10 group-hover:-translate-y-[2px]',
+            cellLast: 'bg-white border-y border-r border-black/[0.05] rounded-r-2xl shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-300 group-hover:border-black/10 group-hover:shadow-[0_12px_24px_rgba(0,0,0,0.04)] group-hover:-translate-y-[2px]',
         };
     }, [rowDensity]);
 

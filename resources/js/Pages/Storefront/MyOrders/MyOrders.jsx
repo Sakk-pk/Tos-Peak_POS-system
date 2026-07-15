@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import StorefrontLayout from '@/Layouts/Storefront/StorefrontLayout';
-import { Package, Search, ChevronRight, ShoppingBag, Calendar, CreditCard, CheckCircle2, XCircle, Clock, ArrowLeft } from 'lucide-react';
+import { Package, Search, ChevronRight, ShoppingBag, Calendar, CreditCard, CheckCircle2, XCircle, Clock, ArrowLeft, Eye, Download } from 'lucide-react';
+import InvoiceModal from '@/Components/Order/InvoiceModal';
+import { generateInvoicePDF } from '@/Utils/invoiceGenerator';
 
 function formatPrice(value) {
     return new Intl.NumberFormat('en-US', {
@@ -47,6 +49,22 @@ const PaymentMethod = ({ method }) => {
 export default function MyOrders({ orders, filters = {} }) {
     const [searchInput, setSearchInput] = useState(filters.search || '');
     const [expandedId, setExpandedId] = useState(null);
+    const [invoiceOrder, setInvoiceOrder] = useState(null);
+    const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+    const [autoDownload, setAutoDownload] = useState(false);
+    const [activeDownloadingId, setActiveDownloadingId] = useState(null);
+
+    const handleDownloadInvoice = (order) => {
+        if (activeDownloadingId) return;
+        setActiveDownloadingId(order.id);
+        generateInvoicePDF(order)
+            .catch((err) => {
+                console.error("PDF generation failed:", err);
+            })
+            .finally(() => {
+                setActiveDownloadingId(null);
+            });
+    };
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -177,9 +195,39 @@ export default function MyOrders({ orders, filters = {} }) {
                                 {/* ── Expanded Items ── */}
                                 {expandedId === order.id && (
                                     <div className="border-t border-neutral-100 bg-[#F9FAFB] px-6 py-5 space-y-4">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 border-b border-black/5 pb-2">
-                                            Items in this order
-                                        </p>
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-black/5 pb-2">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                                                Items in this order
+                                            </p>
+                                            <div className="flex items-center gap-2 select-none">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setInvoiceOrder(order);
+                                                        setAutoDownload(false);
+                                                        setShowInvoiceModal(true);
+                                                    }}
+                                                    className="inline-flex h-7 px-3 items-center gap-1.5 rounded-lg border border-black/10 bg-white text-[10px] font-black uppercase tracking-wider text-gray-700 hover:bg-gray-50 hover:text-black active:scale-95 transition duration-155"
+                                                    title="View Invoice"
+                                                >
+                                                    <Eye size={12} /> View Invoice
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    disabled={activeDownloadingId === order.id}
+                                                    onClick={() => handleDownloadInvoice(order)}
+                                                    className="inline-flex h-7 px-3 items-center gap-1.5 rounded-lg border border-black/10 bg-white text-[10px] font-black uppercase tracking-wider text-gray-700 hover:bg-gray-50 hover:text-black disabled:opacity-50 active:scale-95 transition duration-155"
+                                                    title="Download Invoice"
+                                                >
+                                                    {activeDownloadingId === order.id ? (
+                                                        <span className="w-3 h-3 rounded-full border border-gray-400 border-t-transparent animate-spin" />
+                                                    ) : (
+                                                        <Download size={12} />
+                                                    )}
+                                                    {activeDownloadingId === order.id ? 'Generating...' : 'Download Invoice'}
+                                                </button>
+                                            </div>
+                                        </div>
                                         
                                         <div className="space-y-3">
                                             {(order.items || []).map((item, i) => {
@@ -260,6 +308,17 @@ export default function MyOrders({ orders, filters = {} }) {
                     </div>
                 )}
             </div>
+
+            <InvoiceModal
+                show={showInvoiceModal}
+                onClose={() => {
+                    setShowInvoiceModal(false);
+                    setInvoiceOrder(null);
+                    setAutoDownload(false);
+                }}
+                order={invoiceOrder}
+                autoDownload={autoDownload}
+            />
         </StorefrontLayout>
     );
 }

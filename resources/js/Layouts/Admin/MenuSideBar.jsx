@@ -59,7 +59,6 @@ const groups = [
     group: "Sales",
     items: [
       { title: "Orders", icon: FileText, route: 'orders.index' },
-      { title: "Payments", icon: CreditCard, route: 'payments.index' },
       { title: "Customers", icon: Users, route: 'customers.index' },
     ],
   },

@@ -264,7 +264,7 @@ export default function InventoryPage({
                         <Boxes size={20} />
                     </div>
                     <div>
-                        <h4 className="text-2xl font-black font-display text-black leading-none">{groupedProducts.length}</h4>
+                        <h4 className="text-2xl font-black font-display text-black leading-none">{items.length}</h4>
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1.5 block font-display">Total Products</span>
                     </div>
                 </div>

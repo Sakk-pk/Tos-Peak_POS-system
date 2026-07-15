@@ -434,7 +434,46 @@
     }
 }
 
-/* ── Admin Dashboard — No Radius Override ────────────────────────── */
+/* Rounded corners enabled for modern SaaS aesthetic */
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ADMIN DASHBOARD REDESIGN OVERRIDES
+   Premium Sneaker Control Panel Theme
+   - Sharp rectangular shapes
+   - Zero border-radius
+   - Flat borders, no soft shadows
+   ═══════════════════════════════════════════════════════════════════════ */
+.admin-dashboard,
 .admin-dashboard * {
     border-radius: 0px !important;
 }
+
+.admin-dashboard .shadow-sm,
+.admin-dashboard .shadow,
+.admin-dashboard .shadow-md,
+.admin-dashboard .shadow-lg,
+.admin-dashboard .shadow-xl,
+.admin-dashboard .shadow-2xl,
+.admin-dashboard [class*="shadow-["] {
+    box-shadow: none !important;
+}
+
+.admin-dashboard input[type="text"],
+.admin-dashboard input[type="email"],
+.admin-dashboard input[type="password"],
+.admin-dashboard input[type="search"],
+.admin-dashboard input[type="number"],
+.admin-dashboard select,
+.admin-dashboard textarea {
+    border-radius: 0px !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+.admin-dashboard input:focus,
+.admin-dashboard select:focus,
+.admin-dashboard textarea:focus {
+    border-color: #000000 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
