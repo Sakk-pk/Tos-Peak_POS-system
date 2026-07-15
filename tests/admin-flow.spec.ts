@@ -26,17 +26,14 @@ test.describe('Admin Control Panel Flow', () => {
 
     // 4. Products Catalog
     await page.goto('/products');
-    await page.waitForLoadState('networkidle');
     await expect(page.locator('h1, h2:has-text("Products"), h2:has-text("Product list")').first()).toBeVisible();
 
     // 5. Inventory Stock Table
     await page.goto('/inventory');
-    await page.waitForLoadState('networkidle');
     await expect(page.locator('h1, h2:has-text("Inventory"), h2:has-text("Stock")').first()).toBeVisible();
 
     // 6. POS Terminal View
     await page.goto('/point-of-sale');
-    await page.waitForLoadState('networkidle');
     await expect(page.locator('input[placeholder*="search"], div:has-text("Cart"), div:has-text("POS")').first()).toBeVisible();
   });
 });
