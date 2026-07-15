@@ -21,11 +21,8 @@ test.describe('Customer Storefront Flow', () => {
     await page.locator('input[name="password_confirmation"]').fill('password123');
     await page.locator('button[type="submit"], button:has-text("Register"), button:has-text("SIGN UP")').click();
 
-    // After registration, Laravel Breeze automatically logs the user in and redirects to /dashboard
-    await page.waitForURL('**/dashboard');
-
-    // Go back to the storefront homepage now that the user is logged in
-    await page.goto('/');
+    // After registration, customer is automatically logged in and redirected directly to the homepage (/)
+    await page.waitForURL('https://tos-peakpos-system-production.up.railway.app/');
 
     // 2. Product details
     const productLink = page.locator('a[href*="/shop/"]').first();

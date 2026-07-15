@@ -46,6 +46,14 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        $roleName = $user->roles->first()?->name ?? '';
+
+        if ($roleName === 'Admin' || $roleName === 'Manager') {
+            return redirect(route('dashboard', absolute: false));
+        } elseif ($roleName === 'Staff') {
+            return redirect('/point-of-sale');
+        }
+
+        return redirect('/');
     }
 }
