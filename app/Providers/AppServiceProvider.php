@@ -56,5 +56,17 @@ class AppServiceProvider extends ServiceProvider
             'database.connections.mysql.username' => getenv('DB_USERNAME') ?: (getenv('MYSQL_USER') ?: (getenv('MYSQLUSER') ?: 'root')),
             'database.connections.mysql.password' => getenv('DB_PASSWORD') ?: (getenv('MYSQL_PASSWORD') ?: (getenv('MYSQLPASSWORD') ?: '')),
         ]);
+
+        // Self-heal: Automatically migrate and seed database if products table is missing or empty
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('products')) {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('products') && \App\Models\Product::count() === 0) {
+                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+            }
+        } catch (\Throwable $e) {
+            // Avoid failing during build or if DB is not ready yet
+        }
     }
 }
