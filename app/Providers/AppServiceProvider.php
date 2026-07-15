@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -35,6 +36,11 @@ class AppServiceProvider extends ServiceProvider
         Vite::prefetch(concurrency: 3);
         
         \App\Models\Product::observe(\App\Observers\ProductObserver::class);
+
+        // Force HTTPS URL scheme in production
+        if (config('app.env') === 'production' || getenv('APP_ENV') === 'production') {
+            URL::forceScheme('https');
+        }
 
         // Dynamically override cached database config at runtime using active environment variables
         $connectionName = getenv('DB_CONNECTION') ?: 'mysql';
