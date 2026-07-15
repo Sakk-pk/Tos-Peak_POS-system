@@ -79,8 +79,10 @@ export default function CheckoutPage() {
   const validateForm = () => {
     const newErrors = {};
     
-    // Optional phone format check if phone number is supplied
-    if (customerPhone && customerPhone.trim()) {
+    // Phone number is required
+    if (!customerPhone || !customerPhone.trim()) {
+      newErrors.customerPhone = 'Phone number is required.';
+    } else {
       const cleanPhone = customerPhone.trim().replace(/[\s()+-]/g, '');
       if (cleanPhone.length < 8 || !/^[0-9]+$/.test(cleanPhone)) {
         newErrors.customerPhone = 'Please enter a valid phone number (min 8 digits).';
@@ -264,7 +266,7 @@ export default function CheckoutPage() {
     const combinedNotes = `
 Delivery Address:
 ${streetAddress || 'N/A'}${apartment ? `, ${apartment}` : ''}
-${city || 'N/A'}, ${stateProv} ${zipCode || 'N/A'}
+${city || 'N/A'}, ${stateProv}
 Cambodia
 
 Notes: ${orderNotes || 'N/A'}
@@ -583,17 +585,6 @@ ${appliedVoucher ? `Applied Voucher: ${appliedVoucher.name}` : ''}
                     </div>
                   </div>
 
-                  {/* Zip Code */}
-                  <div className="w-full sm:w-1/2">
-                    <CheckoutInput 
-                      id="chk-zipCode"
-                      label="Zip Code" 
-                      value={zipCode} 
-                      onChange={(val) => handleInputChange('zipCode', setZipCode, val)} 
-                      error={errors.zipCode}
-                    />
-                  </div>
-
                   {/* Country Display (Cambodia Only) */}
                   <p className="text-[14px] font-semibold text-neutral-500">
                     Country: <span className="text-neutral-950 font-bold">Cambodia</span>
@@ -603,7 +594,7 @@ ${appliedVoucher ? `Applied Voucher: ${appliedVoucher.name}` : ''}
                   <div className="w-full sm:w-1/2">
                     <CheckoutInput 
                       id="chk-customerPhone"
-                      label="Phone Number" 
+                      label="Phone Number *" 
                       value={customerPhone} 
                       onChange={(val) => handleInputChange('customerPhone', setCustomerPhone, val)} 
                       helperText="E.g. (123) 456-7890"
