@@ -16,11 +16,13 @@ export default function ProductCard({
     // Modal state
     const [loginModal, setLoginModal] = useState({ open: false, message: '' });
 
+    const wishlistKey = auth?.user?.id ? `wishlist_items_${auth.user.id}` : 'wishlist_items';
+
     // Wishlist state — check localStorage or fallback to props
     const [isWishlisted, setIsWishlisted] = useState(() => {
         if (!isLoggedIn) return false;
         try {
-            const currentWishlist = JSON.parse(localStorage.getItem('wishlist_items')) || [];
+            const currentWishlist = JSON.parse(localStorage.getItem(wishlistKey)) || [];
             return currentWishlist.some(item => item.id === product.id);
         } catch {
             return wishlist_ids.includes(product.id);
@@ -34,13 +36,13 @@ export default function ProductCard({
             return;
         }
         try {
-            const currentWishlist = JSON.parse(localStorage.getItem('wishlist_items')) || [];
+            const currentWishlist = JSON.parse(localStorage.getItem(wishlistKey)) || [];
             const exists = currentWishlist.some(item => item.id === product.id);
             setIsWishlisted(exists || wishlist_ids.includes(product.id));
         } catch {
             setIsWishlisted(wishlist_ids.includes(product.id));
         }
-    }, [wishlist_ids, product.id, isLoggedIn]);
+    }, [wishlist_ids, product.id, isLoggedIn, wishlistKey]);
 
     const imageSrc = product.image
         ? (product.image.startsWith('http') || product.image.startsWith('/'))
@@ -77,7 +79,7 @@ export default function ProductCard({
             })
             .then(res => res.json())
             .then(data => {
-                const currentWishlist = JSON.parse(localStorage.getItem('wishlist_items')) || [];
+                const currentWishlist = JSON.parse(localStorage.getItem(wishlistKey)) || [];
                 const exists = currentWishlist.some(item => item.id === product.id);
                 let newWishlist;
                 if (data.wishlisted) {
@@ -95,7 +97,7 @@ export default function ProductCard({
                             colors: ['#000000', '#D1D5DB', '#EF4444', '#3B82F6'],
                             sizes: ['8', '9', '10', '11']
                         }];
-                        localStorage.setItem('wishlist_items', JSON.stringify(newWishlist));
+                        localStorage.setItem(wishlistKey, JSON.stringify(newWishlist));
                     }
                     window.dispatchEvent(new CustomEvent('toast', {
                         detail: { message: `Added "${product.name}" to Wishlist.`, type: 'success' }
@@ -103,7 +105,7 @@ export default function ProductCard({
                 } else {
                     setIsWishlisted(false);
                     newWishlist = currentWishlist.filter(item => item.id !== product.id);
-                    localStorage.setItem('wishlist_items', JSON.stringify(newWishlist));
+                    localStorage.setItem(wishlistKey, JSON.stringify(newWishlist));
                     window.dispatchEvent(new CustomEvent('toast', {
                         detail: { message: `Removed "${product.name}" from Wishlist.`, type: 'info' }
                     }));
@@ -115,7 +117,7 @@ export default function ProductCard({
             })
             .catch(() => {
                 // local fallback
-                const currentWishlist = JSON.parse(localStorage.getItem('wishlist_items')) || [];
+                const currentWishlist = JSON.parse(localStorage.getItem(wishlistKey)) || [];
                 const exists = currentWishlist.some(item => item.id === product.id);
                 let newWishlist;
                 if (exists) {
@@ -125,7 +127,7 @@ export default function ProductCard({
                     newWishlist = [...currentWishlist, product];
                     setIsWishlisted(true);
                 }
-                localStorage.setItem('wishlist_items', JSON.stringify(newWishlist));
+                localStorage.setItem(wishlistKey, JSON.stringify(newWishlist));
                 window.dispatchEvent(new Event('storage'));
             })
             .finally(() => {

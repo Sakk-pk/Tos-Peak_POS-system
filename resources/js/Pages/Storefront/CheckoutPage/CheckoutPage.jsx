@@ -161,9 +161,12 @@ export default function CheckoutPage() {
     applySelectedAddress(addr);
   };
 
+  const addressesKey = user?.id ? `tos_saved_addresses_${user.id}` : 'tos_saved_addresses';
+  const vouchersKey = user?.id ? `tos_redeemed_vouchers_${user.id}` : 'tos_redeemed_vouchers';
+
   useEffect(() => {
     try {
-      const stored = JSON.parse(localStorage.getItem('tos_saved_addresses')) || [];
+      const stored = JSON.parse(localStorage.getItem(addressesKey)) || [];
       setSavedAddresses(stored);
       
       const defaultAddr = stored.find(a => a.isDefault) || stored[0];
@@ -176,7 +179,7 @@ export default function CheckoutPage() {
     } catch (_) {
       setUseManualAddress(true);
     }
-  }, []);
+  }, [user?.id, addressesKey]);
 
   const [paymentMethod] = useState('qr'); // Only Bakong KHQR accepted
   const [orderNotes, setOrderNotes] = useState('');
@@ -192,10 +195,10 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     try {
-      const stored = JSON.parse(localStorage.getItem('tos_redeemed_vouchers')) || [];
+      const stored = JSON.parse(localStorage.getItem(vouchersKey)) || [];
       setRedeemedVouchersList(stored);
     } catch (_) {}
-  }, []);
+  }, [user?.id, vouchersKey]);
 
   // Calculations
   const discountAmount = useMemo(() => {
@@ -225,9 +228,9 @@ export default function CheckoutPage() {
   const removeUsedVoucher = () => {
     if (appliedVoucher) {
       try {
-        const stored = JSON.parse(localStorage.getItem('tos_redeemed_vouchers')) || [];
+        const stored = JSON.parse(localStorage.getItem(vouchersKey)) || [];
         const filtered = stored.filter(id => id !== appliedVoucher.id);
-        localStorage.setItem('tos_redeemed_vouchers', JSON.stringify(filtered));
+        localStorage.setItem(vouchersKey, JSON.stringify(filtered));
       } catch (_) {}
     }
   };
@@ -287,6 +290,7 @@ ${appliedVoucher ? `Applied Voucher: ${appliedVoucher.name}` : ''}
       if (data.success) {
         // Clear local storage cart & remove applied voucher
         localStorage.setItem('pos_cart', JSON.stringify([]));
+        setCartItems([]);
         removeUsedVoucher();
         
         window.dispatchEvent(new CustomEvent('toast', {
@@ -318,6 +322,7 @@ ${appliedVoucher ? `Applied Voucher: ${appliedVoucher.name}` : ''}
   const handleQrPaymentSuccess = (details) => {
     setShowQrModal(false);
     localStorage.setItem('pos_cart', JSON.stringify([]));
+    setCartItems([]);
     removeUsedVoucher();
 
     window.dispatchEvent(new CustomEvent('toast', {

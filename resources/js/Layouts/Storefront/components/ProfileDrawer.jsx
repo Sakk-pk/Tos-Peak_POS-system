@@ -11,24 +11,22 @@ const VOUCHERS = [
 ];
 
 export default function ProfileDrawer({ showUserDrawer, setShowUserDrawer, user }) {
-  // Sync state to LocalStorage for persistent rewards simulation
-  const [memberPoints, setMemberPoints] = useState(() => {
-    try {
-      const stored = localStorage.getItem('tos_member_points');
-      return stored ? parseInt(stored, 10) : 100;
-    } catch (_) {
-      return 100;
-    }
-  });
+  const pointsKey = user?.id ? `tos_member_points_${user.id}` : 'tos_member_points';
+  const vouchersKey = user?.id ? `tos_redeemed_vouchers_${user.id}` : 'tos_redeemed_vouchers';
 
-  const [redeemedVouchers, setRedeemedVouchers] = useState(() => {
+  // Sync state to LocalStorage for persistent rewards simulation
+  const [memberPoints, setMemberPoints] = useState(100);
+  const [redeemedVouchers, setRedeemedVouchers] = useState([]);
+
+  useEffect(() => {
     try {
-      const stored = localStorage.getItem('tos_redeemed_vouchers');
-      return stored ? JSON.parse(stored) : [];
-    } catch (_) {
-      return [];
-    }
-  });
+      const storedPoints = localStorage.getItem(pointsKey);
+      setMemberPoints(storedPoints ? parseInt(storedPoints, 10) : 100);
+      
+      const storedVouchers = localStorage.getItem(vouchersKey);
+      setRedeemedVouchers(storedVouchers ? JSON.parse(storedVouchers) : []);
+    } catch (_) {}
+  }, [user?.id, pointsKey, vouchersKey]);
 
   const [showPointsHelp, setShowPointsHelp] = useState(false);
   const [drawerView, setDrawerView] = useState('main'); // 'main' | 'rewards'
@@ -37,12 +35,12 @@ export default function ProfileDrawer({ showUserDrawer, setShowUserDrawer, user 
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('tos_member_points', String(memberPoints));
-  }, [memberPoints]);
+    localStorage.setItem(pointsKey, String(memberPoints));
+  }, [memberPoints, pointsKey]);
 
   useEffect(() => {
-    localStorage.setItem('tos_redeemed_vouchers', JSON.stringify(redeemedVouchers));
-  }, [redeemedVouchers]);
+    localStorage.setItem(vouchersKey, JSON.stringify(redeemedVouchers));
+  }, [redeemedVouchers, vouchersKey]);
 
   useEffect(() => {
     if (showUserDrawer) {

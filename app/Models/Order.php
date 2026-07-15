@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Order extends Model
 {
     protected $fillable = [
+        'user_id',
         'order_number',
         'customer_name',
         'customer_email',
@@ -36,5 +37,10 @@ class Order extends Model
     {
         // Returns the latest associated KHQR payment record
         return $this->hasOne(Payment::class)->latestOfMany();
+    }
+
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

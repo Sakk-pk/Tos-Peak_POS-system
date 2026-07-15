@@ -227,7 +227,8 @@ export default function ProductDetail({ product, variants = [], allSizes = [], r
                 setIsWishlisted(data.wishlisted);
                 
                 // Update local storage so that client-side wishlist page updates immediately
-                const currentWishlist = JSON.parse(localStorage.getItem('wishlist_items')) || [];
+                const wishlistKey = auth?.user?.id ? `wishlist_items_${auth.user.id}` : 'wishlist_items';
+                const currentWishlist = JSON.parse(localStorage.getItem(wishlistKey)) || [];
                 const exists = currentWishlist.some(item => item.id === product.id);
                 let newWishlist;
                 if (data.wishlisted) {
@@ -244,14 +245,14 @@ export default function ProductDetail({ product, variants = [], allSizes = [], r
                             colors: ['#000000', '#D1D5DB', '#EF4444', '#3B82F6'],
                             sizes: ['8', '9', '10', '11']
                         }];
-                        localStorage.setItem('wishlist_items', JSON.stringify(newWishlist));
+                        localStorage.setItem(wishlistKey, JSON.stringify(newWishlist));
                     }
                     window.dispatchEvent(new CustomEvent('toast', {
                         detail: { message: `Added "${product.name}" to Wishlist.`, type: 'success' }
                     }));
                 } else {
                     newWishlist = currentWishlist.filter(item => item.id !== product.id);
-                    localStorage.setItem('wishlist_items', JSON.stringify(newWishlist));
+                    localStorage.setItem(wishlistKey, JSON.stringify(newWishlist));
                     window.dispatchEvent(new CustomEvent('toast', {
                         detail: { message: `Removed "${product.name}" from Wishlist.`, type: 'info' }
                     }));

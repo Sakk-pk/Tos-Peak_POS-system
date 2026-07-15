@@ -20,9 +20,10 @@ class CustomerDashboardController extends Controller
     {
         $user = Auth::user();
         
-        // Orders matching user email
+        // Orders matching user
         $orders = Order::with(['items'])
-            ->where('customer_email', $user->email)
+            ->where('user_id', $user->id)
+            ->orWhere('customer_email', $user->email)
             ->latest()
             ->get();
 

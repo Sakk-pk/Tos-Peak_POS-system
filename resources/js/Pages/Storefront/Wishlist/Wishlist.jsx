@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import StorefrontLayout from '@/Layouts/Storefront/StorefrontLayout';
 import ProductCard from '@/Pages/Admin/POS/components/ProductCard';
 import { Heart, Search, ChevronDown, SlidersHorizontal, Sparkles, X, ShoppingBag } from 'lucide-react';
@@ -14,6 +14,9 @@ function formatPrice(value) {
 }
 
 export default function Wishlist({ products }) {
+    const { auth } = usePage().props;
+    const wishlistKey = auth?.user?.id ? `wishlist_items_${auth.user.id}` : 'wishlist_items';
+
     const [wishlistItems, setWishlistItems] = useState(products || []);
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('Newest');
@@ -25,7 +28,7 @@ export default function Wishlist({ products }) {
             setWishlistItems(products);
             return;
         }
-        const stored = localStorage.getItem('wishlist_items');
+        const stored = localStorage.getItem(wishlistKey);
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
@@ -51,7 +54,7 @@ export default function Wishlist({ products }) {
                 clearInterval(interval);
             };
         }
-    }, [products]);
+    }, [products, wishlistKey]);
 
     // Filter and Sort Logic
     const processedItems = useMemo(() => {

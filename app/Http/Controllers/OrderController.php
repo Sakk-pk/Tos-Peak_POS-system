@@ -110,7 +110,19 @@ class OrderController extends Controller
                 // If QR, create as Pending, otherwise Paid
                 $paymentStatus = ($validated['payment_method'] === 'qr') ? 'Pending' : 'Paid';
 
+                $userId = null;
+                if (!empty($validated['customer_email'])) {
+                    $matchedUser = \App\Models\User::where('email', $validated['customer_email'])->first();
+                    if ($matchedUser) {
+                        $userId = $matchedUser->id;
+                    }
+                }
+                if (!$userId && Auth::check() && !Auth::user()->is_team_member) {
+                    $userId = Auth::id();
+                }
+
                 $order = Order::create([
+                    'user_id' => $userId,
                     'order_number' => $orderNumber,
                     'customer_name' => $validated['customer_name'] ?: 'Walk-in Customer',
                     'customer_email' => $validated['customer_email'] ?? null,

@@ -19,6 +19,7 @@ export default defineConfig({
       name: 'chromium-desktop',
       use: { 
         ...devices['Desktop Chrome'],
+        browserName: 'chromium',
         viewport: { width: 1280, height: 720 }
       },
     },
@@ -26,6 +27,7 @@ export default defineConfig({
       name: 'chromium-tablet',
       use: { 
         ...devices['iPad Mini'],
+        browserName: 'chromium',
         isMobile: true
       },
     },
@@ -33,6 +35,7 @@ export default defineConfig({
       name: 'chromium-mobile',
       use: { 
         ...devices['iPhone 12 Pro'],
+        browserName: 'chromium',
         isMobile: true
       },
     },
