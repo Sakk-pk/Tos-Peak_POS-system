@@ -15,7 +15,8 @@
         "laravel/tinker": "^2.9",
         "spatie/laravel-permission": "^6.17",
         "tightenco/ziggy": "^2.0",
-        "tymon/jwt-auth": "^2.2"
+        "tymon/jwt-auth": "^2.2",
+        "ext-pdo_mysql": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
