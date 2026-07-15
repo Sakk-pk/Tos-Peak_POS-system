@@ -77,7 +77,7 @@ class ProductSeeder extends Seeder
             'description' => 'Walk Fast',
             'price' => 39.99,
             'stock' => 11,
-            'image' => 'products/AOFCGwnDWLDn8Laz515UmY2jxzt2dUDskicnd4Wv.jpg'
+            'image' => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop'
         ]);
 
         Product::create([
@@ -91,7 +91,7 @@ class ProductSeeder extends Seeder
             'description' => 'hello',
             'price' => 9.97,
             'stock' => 10,
-            'image' => 'products/XlnamR5ByuEacCM6WUqNFF3dWfgRaMVriARO0E35.jpg'
+            'image' => 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&auto=format&fit=crop'
         ]);
 
         Product::create([
@@ -105,7 +105,7 @@ class ProductSeeder extends Seeder
             'description' => 'hi',
             'price' => 20.00,
             'stock' => 15,
-            'image' => 'products/wVOV2yPztbKuFi13nsdEAKUidqg8EdvrH2FFGGlz.jpg'
+            'image' => 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=600&auto=format&fit=crop'
         ]);
 
         Product::create([
@@ -119,7 +119,7 @@ class ProductSeeder extends Seeder
             'description' => 'hello',
             'price' => 14.00,
             'stock' => 11,
-            'image' => 'products/1COA6NKmVhXV0QrsG5mvG5UempcZYC2LNKIDAHRw.jpg'
+            'image' => 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=600&auto=format&fit=crop'
         ]);
     }
 }

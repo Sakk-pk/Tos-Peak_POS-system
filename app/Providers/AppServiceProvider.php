@@ -62,8 +62,24 @@ class AppServiceProvider extends ServiceProvider
             if (!\Illuminate\Support\Facades\Schema::hasTable('products')) {
                 \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
             }
-            if (\Illuminate\Support\Facades\Schema::hasTable('products') && \App\Models\Product::count() === 0) {
-                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+            if (\Illuminate\Support\Facades\Schema::hasTable('products')) {
+                if (\App\Models\Product::count() === 0) {
+                    \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+                } else {
+                    // Update old local image paths to beautiful Unsplash public sneaker images
+                    $unsplashImages = [
+                        1 => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop',
+                        2 => 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&auto=format&fit=crop',
+                        3 => 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=600&auto=format&fit=crop',
+                        4 => 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=600&auto=format&fit=crop',
+                    ];
+                    foreach ($unsplashImages as $id => $url) {
+                        $product = \App\Models\Product::find($id);
+                        if ($product && !str_starts_with($product->image, 'http')) {
+                            $product->update(['image' => $url]);
+                        }
+                    }
+                }
             }
         } catch (\Throwable $e) {
             // Avoid failing during build or if DB is not ready yet
