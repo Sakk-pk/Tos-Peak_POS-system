@@ -17,6 +17,7 @@ import {
     AlertOctagon
 } from 'lucide-react';
 import InvoiceModal from '@/Components/Order/InvoiceModal';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
 import { generateInvoicePDF } from '@/Utils/invoiceGenerator';
 
 function formatPrice(value) {
@@ -67,6 +68,8 @@ export default function OrdersPage({ orders, filters }) {
         }
     };
 
+    const [cancelModalState, setCancelModalState] = useState({ show: false, orderId: null });
+
     const handleFilterSelect = (type, value) => {
         setSearchTerm(value);
         router.get(route('orders.index'), { search: value }, {
@@ -76,13 +79,20 @@ export default function OrdersPage({ orders, filters }) {
     };
 
     const handleCancelOrder = (orderId) => {
-        if (confirm("Are you sure you want to cancel this pending order? This will release reserved stock back into inventory.")) {
-            router.post(route('orders.cancel', orderId), {}, {
-                onSuccess: () => {
-                    closeOrderDetail();
-                }
-            });
-        }
+        setCancelModalState({
+            show: true,
+            orderId: orderId,
+        });
+    };
+
+    const confirmCancelOrder = () => {
+        if (!cancelModalState.orderId) return;
+        router.post(route('orders.cancel', cancelModalState.orderId), {}, {
+            onSuccess: () => {
+                setCancelModalState({ show: false, orderId: null });
+                closeOrderDetail();
+            }
+        });
     };
 
     const openOrderDetail = (order) => {
@@ -122,15 +132,17 @@ export default function OrdersPage({ orders, filters }) {
         return `${firstItemName} + ${items.length - 1} items`;
     };
 
-    const isWalkInOrder = (order) => {
-        return order.customer_name === 'Walk-in Customer' || order.payment_method === 'cash' || order.payment_method === 'card';
+    // A POS order is any order explicitly created from the point-of-sale terminal.
+    // Use the source field; fall back to name-based heuristic for legacy orders.
+    const isPosOrder = (order) => {
+        return order.source === 'pos' || (!order.source && order.customer_name === 'Walk-in Customer');
     };
 
     const getCustomerDisplayName = (order) => {
-        if (order.customer_name === 'Walk-in Customer') {
-            return 'Guest Customer';
+        if (isPosOrder(order)) {
+            return 'Walk-in Customer';
         }
-        return order.customer_name;
+        return order.customer_name || 'Customer';
     };
 
     const getPaymentMethodLabel = (method) => {
@@ -153,33 +165,33 @@ export default function OrdersPage({ orders, filters }) {
 
             {/* ── Page Metrics ─────────────────────────────────────────── */}
             <section className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                <div className="bg-white border border-black/[0.08] p-5 rounded-none flex items-center justify-between select-none">
+                <div className="summary-card rounded-xl bg-white border border-black/[0.08] p-5 flex items-center justify-between select-none">
                     <div>
                         <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">orders count</span>
                         <h4 className="text-xl font-extrabold text-black mt-1.5 leading-none">{orders?.total || 0}</h4>
                     </div>
-                    <span className="p-2.5 bg-neutral-100 border border-neutral-200 text-neutral-800 rounded-none"><ShoppingBag size={15} /></span>
+                    <span className="p-2.5 bg-neutral-100 border border-neutral-200 text-neutral-800 summary-card rounded-lg"><ShoppingBag size={15} /></span>
                 </div>
-                <div className="bg-white border border-black/[0.08] p-5 rounded-none flex items-center justify-between select-none">
+                <div className="summary-card rounded-xl bg-white border border-black/[0.08] p-5 flex items-center justify-between select-none">
                     <div>
                         <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">total revenue</span>
                         <h4 className="text-xl font-extrabold text-black mt-1.5 leading-none">{formatPrice(pageTotal)}</h4>
                     </div>
-                    <span className="p-2.5 bg-neutral-100 border border-neutral-200 text-neutral-800 rounded-none"><TrendingUp size={15} /></span>
+                    <span className="p-2.5 bg-neutral-100 border border-neutral-200 text-neutral-800 summary-card rounded-lg"><TrendingUp size={15} /></span>
                 </div>
-                <div className="bg-white border border-black/[0.08] p-5 rounded-none flex items-center justify-between select-none">
+                <div className="summary-card rounded-xl bg-white border border-black/[0.08] p-5 flex items-center justify-between select-none">
                     <div>
                         <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">cash checkouts</span>
                         <h4 className="text-xl font-extrabold text-black mt-1.5 leading-none">{formatPrice(cashTotal)}</h4>
                     </div>
-                    <span className="p-2.5 bg-neutral-100 border border-neutral-200 text-neutral-800 rounded-none"><CheckCircle size={15} /></span>
+                    <span className="p-2.5 bg-neutral-100 border border-neutral-200 text-neutral-800 summary-card rounded-lg"><CheckCircle size={15} /></span>
                 </div>
-                <div className="bg-white border border-black/[0.08] p-5 rounded-none flex items-center justify-between select-none">
+                <div className="summary-card rounded-xl bg-white border border-black/[0.08] p-5 flex items-center justify-between select-none">
                     <div>
                         <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">khqr checkouts</span>
                         <h4 className="text-xl font-extrabold text-black mt-1.5 leading-none">{formatPrice(qrTotal)}</h4>
                     </div>
-                    <span className="p-2.5 bg-neutral-100 border border-neutral-200 text-neutral-800 rounded-none"><CreditCard size={15} /></span>
+                    <span className="p-2.5 bg-neutral-100 border border-neutral-200 text-neutral-800 summary-card rounded-lg"><CreditCard size={15} /></span>
                 </div>
             </section>
 
@@ -232,7 +244,7 @@ export default function OrdersPage({ orders, filters }) {
                         </thead>
                         <tbody className="divide-y divide-black/[0.04]">
                             {orderList.map((order) => {
-                                const itemCount = order.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+                                const itemCount = order.orderItems?.reduce((sum, item) => sum + item.quantity, 0) || 0;
                                 const displayName = getCustomerDisplayName(order);
 
                                 const orderDate = new Date(order.created_at).toLocaleDateString('en-US', {
@@ -277,8 +289,8 @@ export default function OrdersPage({ orders, filters }) {
                                         </td>
                                         
                                         <td className="py-5 px-4 text-gray-655 font-sans text-xs">
-                                            <div className="max-w-[200px] truncate font-bold text-gray-800" title={order.items?.map(i => `${i.product_name} (x${i.quantity})`).join(', ')}>
-                                                {formatProductsList(order.items)}
+                                            <div className="max-w-[200px] truncate font-bold text-gray-800" title={order.orderItems?.map(i => `${i.product_name} (x${i.quantity})`).join(', ')}>
+                                                {formatProductsList(order.orderItems)}
                                             </div>
                                             <div className="text-[9px] text-gray-400 font-semibold mt-1">
                                                 {itemCount} {itemCount === 1 ? 'item' : 'items'}
@@ -411,6 +423,9 @@ export default function OrdersPage({ orders, filters }) {
                             <div className="space-y-1">
                                 <span className="text-[9px] font-bold text-gray-450 uppercase tracking-widest">customer</span>
                                 <p className="font-bold text-gray-955 leading-none">{getCustomerDisplayName(selectedOrder)}</p>
+                                {selectedOrder.customer_phone && (
+                                    <p className="text-[9px] font-mono text-gray-400 mt-0.5">{selectedOrder.customer_phone}</p>
+                                )}
                             </div>
                             <div className="space-y-1">
                                 <span className="text-[9px] font-bold text-gray-455 uppercase tracking-widest text-gray-450">email</span>
@@ -425,11 +440,33 @@ export default function OrdersPage({ orders, filters }) {
                                 </p>
                             </div>
                             <div className="space-y-1">
-                                <span className="text-[9px] font-bold text-gray-450 uppercase tracking-widest">shipping address</span>
-                                <p className="font-bold text-gray-900 leading-none">
-                                    {isWalkInOrder(selectedOrder) ? 'N/A - In-Store Pickup' : 'Phnom Penh, Cambodia'}
+                                <span className="text-[9px] font-bold text-gray-450 uppercase tracking-widest">order source</span>
+                                <p className="font-bold text-gray-900 leading-none uppercase">
+                                    {selectedOrder.source === 'storefront' ? (
+                                        <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[9px] font-bold tracking-wider">
+                                            ONLINE
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1 bg-neutral-100 text-neutral-600 border border-neutral-200 px-2 py-0.5 text-[9px] font-bold tracking-wider">
+                                            IN-STORE
+                                        </span>
+                                    )}
                                 </p>
                             </div>
+                            {/* Shipping address — storefront orders only */}
+                            {selectedOrder.source === 'storefront' ? (
+                                <div className="col-span-2 space-y-1">
+                                    <span className="text-[9px] font-bold text-gray-450 uppercase tracking-widest">shipping address</span>
+                                    <p className="font-bold text-gray-900 leading-snug">
+                                        {selectedOrder.shipping_address || 'No address provided'}
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="col-span-2 space-y-1">
+                                    <span className="text-[9px] font-bold text-gray-450 uppercase tracking-widest">shipping address</span>
+                                    <p className="font-bold text-gray-400 leading-none italic">N/A — In-Store Pickup</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Items */}
@@ -554,6 +591,16 @@ export default function OrdersPage({ orders, filters }) {
                 }}
                 order={invoiceOrder}
                 autoDownload={autoDownload}
+            />
+
+            <ConfirmModal
+                show={cancelModalState.show}
+                onClose={() => setCancelModalState({ show: false, orderId: null })}
+                onConfirm={confirmCancelOrder}
+                title="Cancel Order"
+                message="Are you sure you want to cancel this pending order? This action cannot be undone and will release reserved stock back into inventory."
+                confirmText="Cancel Order"
+                variant="danger"
             />
         </AdminLayout>
     );

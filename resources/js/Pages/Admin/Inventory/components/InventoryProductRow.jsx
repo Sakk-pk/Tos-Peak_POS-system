@@ -4,6 +4,7 @@ import { useTableRowConfig } from '@/Context/TableRowContext';
 import { Tag, Layers, Package, Eye, Edit, Plus, ShoppingBag } from 'lucide-react';
 import Badge from '@/Components/ui/Badge';
 import { router } from '@inertiajs/react';
+import { getAccurateColorHex } from '@/Utils/colorHelper';
 
 export default function InventoryProductRow({ 
     product, 
@@ -54,7 +55,7 @@ export default function InventoryProductRow({
     const subCategoryName = product.sub_category?.name ?? product.sub_category_name ?? product.sub_category ?? '';
 
     const isOutOfStock = totalStock === 0;
-    const isLowStock = totalStock > 0 && totalStock <= (product.low_stock_threshold ?? 20);
+    const isLowStock = totalStock > 0 && totalStock <= 15;
 
     const imageSrc = product.image
         ? (product.image.startsWith('http') || product.image.startsWith('/'))
@@ -75,31 +76,31 @@ export default function InventoryProductRow({
                 <div className="flex items-center justify-end gap-1.5">
                     <button
                         onClick={onView}
-                        className={`${classes.actionBase} text-gray-400 hover:text-neutral-900 hover:bg-neutral-50`}
+                        className="h-9 w-9 rounded-xl border border-gray-200/80 bg-gray-50/80 text-gray-500 hover:bg-black hover:text-white hover:border-black transition-all duration-200 shadow-sm flex items-center justify-center active:scale-95"
                         title="View details"
                     >
-                        <Eye className="h-4.5 w-4.5" />
+                        <Eye className="h-4 w-4 stroke-[2.2]" />
                     </button>
                     <button
                         onClick={() => router.visit(route('products.show', product.id))}
-                        className={`${classes.actionBase} text-gray-400 hover:text-neutral-900 hover:bg-neutral-50`}
+                        className="h-9 w-9 rounded-xl border border-orange-100 bg-orange-50/60 text-orange-600 hover:bg-[#f97316] hover:text-white hover:border-[#f97316] transition-all duration-200 shadow-sm flex items-center justify-center active:scale-95"
                         title="Edit product"
                     >
-                        <Edit className="h-4.5 w-4.5" />
+                        <Edit className="h-4 w-4 stroke-[2.2]" />
                     </button>
                     <button
                         onClick={onStockIn}
-                        className={`${classes.actionBase} text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50`}
+                        className="h-9 w-9 rounded-xl border border-emerald-100 bg-emerald-50/60 text-emerald-600 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all duration-200 shadow-sm flex items-center justify-center active:scale-95"
                         title="Stock in variant"
                     >
-                        <Plus className="h-4.5 w-4.5" />
+                        <Plus className="h-4 w-4 stroke-[2.2]" />
                     </button>
                     <button
                         onClick={onViewHistory}
-                        className={`${classes.actionBase} text-[#f97316] hover:text-orange-700 hover:bg-orange-50`}
+                        className="h-9 w-9 rounded-xl border border-purple-100 bg-purple-50/60 text-purple-600 hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all duration-200 shadow-sm flex items-center justify-center active:scale-95"
                         title="View history"
                     >
-                        <ShoppingBag className="h-4.5 w-4.5" />
+                        <ShoppingBag className="h-4 w-4 stroke-[2.2]" />
                     </button>
                 </div>
             }
@@ -107,23 +108,23 @@ export default function InventoryProductRow({
         >
             {/* 1. Product details */}
             <td className={cellDetailsClass}>
-                <div className="flex items-center h-28 gap-4">
+                <div className="flex items-center h-20 gap-3">
                     {/* Thumbnail */}
                     <div 
                         onClick={onView}
-                        className="w-28 h-28 shrink-0 bg-white flex items-center justify-center p-3 border-r border-[#E5E7EB] cursor-pointer hover:bg-[#F9FAFB] transition select-none"
+                        className="w-20 h-20 shrink-0 bg-[#f5f5f5] overflow-hidden flex items-center justify-center border-r border-[#E5E7EB] cursor-pointer hover:bg-gray-100 transition select-none"
                     >
                         {imageSrc ? (
                             <img
                                 src={imageSrc}
                                 alt={product.name}
-                                className="h-full w-full object-contain mix-blend-multiply transition-transform duration-300 hover:scale-105"
+                                className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
                             />
                         ) : (
-                            <div className="h-20 w-20 bg-gray-200/40 border border-black/5 flex flex-col items-center justify-center p-2 text-center text-[8px] font-mono tracking-tighter text-gray-400 uppercase select-none rounded">
+                            <div className="h-16 w-16 bg-gray-200/40 border border-black/5 flex flex-col items-center justify-center p-1.5 text-center text-[7px] font-mono tracking-tighter text-gray-400 uppercase select-none rounded">
                                 <span className="font-extrabold block">TOS-PEAK</span>
-                                <span className="mt-0.5 text-[6px]">No Product Image</span>
+                                <span className="mt-0.5 text-[5px]">No Product Image</span>
                             </div>
                         )}
                     </div>
@@ -131,19 +132,19 @@ export default function InventoryProductRow({
                     {/* Brand and name */}
                     <div className="min-w-0 pr-2">
                         {brandName && (
-                            <span className="text-[9px] font-black tracking-widest text-[#f97316] font-display uppercase block leading-none mb-1.5">
+                            <span className="text-[9px] font-black tracking-widest text-[#f97316] font-display uppercase block leading-none mb-1">
                                 {brandName}
                             </span>
                         )}
                         <h4 
                             onClick={onView}
-                            className="text-sm font-extrabold text-gray-900 leading-tight truncate hover:underline cursor-pointer"
+                            className="text-xs font-extrabold text-gray-900 leading-tight truncate hover:underline cursor-pointer"
                         >
                             {product.name}
                         </h4>
-                        {product.description && (
-                            <p className="max-w-[340px] text-xs font-semibold text-gray-400 truncate mt-1" title={product.description}>
-                                {subCategoryName ? `${subCategoryName} • ` : ''}{product.description}
+                        {subCategoryName && (
+                            <p className="max-w-[340px] text-xs font-semibold text-gray-400 truncate mt-1">
+                                {subCategoryName}
                             </p>
                         )}
                         {variants.length > 0 && (
@@ -178,7 +179,7 @@ export default function InventoryProductRow({
                                     <div
                                         key={color.id || idx}
                                         className="h-3 w-3 rounded-full border border-black/15 shadow-sm shrink-0"
-                                        style={{ backgroundColor: color.value }}
+                                        style={{ backgroundColor: getAccurateColorHex(color.name, color.value) }}
                                         title={color.name}
                                     />
                                 ))}

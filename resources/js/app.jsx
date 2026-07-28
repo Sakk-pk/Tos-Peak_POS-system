@@ -1,6 +1,3 @@
-import '../css/app.css';
-import './bootstrap';
-
 // Import jQuery and Bootstrap (Required for dropdowns)
 import $ from 'jquery';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -11,6 +8,9 @@ import 'admin-lte/dist/css/adminlte.min.css';
 import 'admin-lte/dist/js/adminlte.min.js';
 
 import '@fortawesome/fontawesome-free/css/all.min.css';
+
+// Custom App CSS - Must be after third-party styles to override them
+import '../css/app.css';
 
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';

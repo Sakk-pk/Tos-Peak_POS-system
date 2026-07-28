@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\User\User;
+use App\Support\RedirectsAfterLogin;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,6 +22,7 @@ use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
+    use RedirectsAfterLogin;
     /**
      * Get a JWT via given credentials.
      *
@@ -102,20 +104,12 @@ class AuthController extends Controller
             $user->token = $token;
             $user->save();
 
-            $roleName = $user->roles->first()?->name ?? 'Customer';
-            $scheme = $request->getScheme();
-            $host = $request->getHost();
-            
-            $redirectUrl = '/';
-            if ($roleName !== 'Customer') {
-                $redirectUrl = '/dashboard';
-            }
+            $redirectUrl = $this->loginRedirectUrl($user);
 
             return response()->json([
                 'success' => true,
                 'error'   => false,
                 'data'    => $user,
-                'role'    => $roleName,
                 'redirect_url' => $redirectUrl,
                 'message' => 'Login successfully!'
             ]);
@@ -221,7 +215,7 @@ class AuthController extends Controller
             ]);
         }
 
-        return redirect('/');
+        return redirect($this->loginRedirectUrl($user));
     }
 
     public function register(Request $request)
@@ -287,18 +281,9 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthenticated'], 401);
         }
 
-        $user->loadMissing('roles');
-        $roleName = $user->roles->first()?->name ?? 'Customer';
-        $scheme = $request->getScheme();
-        $host = $request->getHost();
-        $redirectUrl = match ($roleName) {
-            'Admin' => '/dashboard',
-            'Staff' => '/pos',
-            default => '/'
-        };
+        $redirectUrl = $this->loginRedirectUrl($user);
 
         return response()->json(array_merge($user->toArray(), [
-            'role' => $roleName,
             'redirect_url' => $redirectUrl,
         ]));
     }

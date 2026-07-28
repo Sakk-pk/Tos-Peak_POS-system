@@ -33,9 +33,8 @@ class SecurityAuditorReportTest extends TestCase
 
         // Seed new simplified permissions and roles
         $allPerms = [
-            'view-dashboard', 'manage-pos', 'manage-products', 'manage-variants',
-            'manage-inventory', 'manage-orders', 'manage-payments', 'manage-customers',
-            'manage-staff', 'manage-roles', 'view-notifications', 'view-reports', 'manage-settings',
+            'dashboard', 'pos', 'catalog', 'products', 'inventory', 'orders',
+            'customers', 'team-members', 'roles',
         ];
 
         foreach ($allPerms as $permName) {
@@ -47,15 +46,12 @@ class SecurityAuditorReportTest extends TestCase
 
         $managerRole = Role::firstOrCreate(['name' => 'Manager', 'guard_name' => 'web']);
         $managerRole->syncPermissions([
-            'view-dashboard', 'manage-pos', 'manage-products', 'manage-variants',
-            'manage-inventory', 'manage-orders', 'manage-payments',
-            'manage-customers', 'view-notifications', 'view-reports',
+            'dashboard', 'pos', 'products', 'inventory', 'orders', 'customers',
         ]);
 
         $staffRole = Role::firstOrCreate(['name' => 'Staff', 'guard_name' => 'web']);
         $staffRole->syncPermissions([
-            'view-dashboard', 'manage-pos', 'manage-orders',
-            'manage-payments', 'manage-customers', 'view-notifications',
+            'dashboard', 'pos', 'orders', 'customers',
         ]);
 
         $this->category = Category::create(['name' => 'Testing Unit', 'view_order' => 1]);

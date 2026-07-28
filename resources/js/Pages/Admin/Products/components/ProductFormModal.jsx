@@ -45,6 +45,20 @@ export default function ProductFormModal({
         const file = event.target.files?.[0];
         if (file) {
             setProduct('image', file);
+
+            // Extract file name without extension
+            const lastDotIndex = file.name.lastIndexOf('.');
+            const rawName = lastDotIndex > 0 ? file.name.substring(0, lastDotIndex) : file.name;
+
+            // Format nicely (replace dashes/underscores with spaces and trim)
+            const cleanName = rawName
+                .replace(/[-_]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            if (cleanName) {
+                setProduct('name', cleanName);
+            }
         }
     };
 

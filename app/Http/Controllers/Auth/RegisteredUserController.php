@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\User\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,22 +37,15 @@ class RegisteredUserController extends Controller
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+            'name'   => $request->name,
+            'email'  => $request->email,
             'password' => Hash::make($request->password),
+            'points' => 100, // New customers start with 100 reward points
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
-
-        $roleName = $user->roles->first()?->name ?? '';
-
-        if ($roleName === 'Admin' || $roleName === 'Manager') {
-            return redirect(route('dashboard', absolute: false));
-        } elseif ($roleName === 'Staff') {
-            return redirect('/point-of-sale');
-        }
 
         return redirect('/');
     }

@@ -23,12 +23,7 @@ import {
   UserRound,
   Users,
   Shield,
-  Bell,
-  FolderTree,
-  PlusSquare,
-  ListTree,
   SlidersHorizontal,
-  Settings,
 } from 'lucide-react';
 import { useSidebar } from '@/Components/ui/sidebar';
 
@@ -43,31 +38,30 @@ const groups = [
   {
     group: "Overview",
     items: [
-      { title: "Dashboard", icon: LayoutDashboard, route: 'dashboard' },
-      { title: "POS", icon: ShoppingCart, route: 'point-of-sale.index' },
+      { title: "Dashboard", icon: LayoutDashboard, route: 'dashboard', permission: 'dashboard' },
+      { title: "POS", icon: ShoppingCart, route: 'point-of-sale.index', permission: 'pos' },
     ],
   },
   {
     group: "Catalog",
     items: [
-      { title: "Catalog Settings", icon: SlidersHorizontal, route: 'catalog-settings.index' },
-      { title: "Products", icon: Package, route: 'products.index' },
-      { title: "Inventory", icon: Warehouse, route: 'inventory.index' },
+      { title: "Catalog Settings", icon: SlidersHorizontal, route: 'catalog-settings.index', permission: 'catalog' },
+      { title: "Products", icon: Package, route: 'products.index', permission: 'products' },
+      { title: "Inventory", icon: Warehouse, route: 'inventory.index', permission: 'inventory' },
     ],
   },
   {
     group: "Sales",
     items: [
-      { title: "Orders", icon: FileText, route: 'orders.index' },
-      { title: "Customers", icon: Users, route: 'customers.index' },
+      { title: "Orders", icon: FileText, route: 'orders.index', permission: 'orders' },
+      { title: "Customers", icon: Users, route: 'customers.index', permission: 'customers' },
     ],
   },
   {
     group: "System",
     items: [
-      { title: "Users", icon: UserRound, route: 'users.index' },
-      { title: "Roles", icon: Shield, route: 'roles.index' },
-      { title: "Notifications", icon: Bell, route: 'notifications.index' },
+      { title: "Team Members", icon: UserRound, route: 'users.index', permission: 'team-members' },
+      { title: "Roles", icon: Shield, route: 'roles.index', permission: 'roles' },
     ],
   },
 ];
@@ -93,12 +87,16 @@ export default function MenuSideBar({ children }) {
 
 function SidebarItems() {
   const { open } = useSidebar();
-  const { url } = usePage();
+  const { url, props } = usePage();
   const currentPath = url?.split('?')[0] ?? '';
+  const can = props.auth?.can ?? {};
+  const visibleGroups = groups
+    .map((section) => ({ ...section, items: section.items.filter((item) => can[item.permission]) }))
+    .filter((section) => section.items.length > 0);
 
   return (
     <div className={open ? '' : 'h-full flex flex-col justify-center'}>
-      {groups.map((section) => (
+      {visibleGroups.map((section) => (
         <SidebarGroup key={section.group}>
           {open ? <SidebarGroupLabel>{section.group}</SidebarGroupLabel> : null}
           <SidebarGroupContent>
@@ -131,18 +129,18 @@ function SidebarItems() {
                   <div className={`relative flex items-center gap-3 ${open ? 'pl-3' : 'justify-center'}`}>
                     {isItemActive ? (
                       <span
-                        className={`absolute rounded-full bg-[#f97316] shadow-[0_0_8px_rgba(249,115,22,0.6)] ${
+                        className={`absolute bg-[#f97316] shadow-[0_0_10px_rgba(249,115,22,0.7)] transition-all duration-200 ${
                           open
-                            ? 'left-0 top-1/2 h-5 w-1 -translate-y-1/2'
-                            : 'left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2'
+                            ? 'left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full'
+                            : 'left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full'
                         }`}
                       />
                     ) : null}
-                    <Icon className="w-5 h-5" />
+                    <Icon className={`w-5 h-5 transition-colors duration-200 ${isItemActive ? 'text-[#f97316]' : 'text-blue-100/75 group-hover:text-white'}`} />
                     {open ? (
                       <span className="flex items-center gap-2">
                         {item.title}
-                        {hasChildren ? <span className="text-xs text-gray-400">CRUD</span> : null}
+                        {hasChildren ? <span className="text-xs text-blue-200/60 font-mono">CRUD</span> : null}
                       </span>
                     ) : null}
                   </div>
@@ -162,7 +160,7 @@ function SidebarItems() {
                     </SidebarMenuButton>
 
                     {hasChildren && open ? (
-                      <div className="mt-1 ml-2 border-l border-gray-200 pl-3">
+                      <div className="mt-1 ml-2 border-l border-white/10 pl-3">
                         {item.children.map((child) => {
                           const ChildIcon = child.icon;
                           const childHref = getRouteHref(child.route);
@@ -173,10 +171,10 @@ function SidebarItems() {
                             <div key={child.route} className="py-1">
                               <Link
                                 href={childHref}
-                                className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold uppercase tracking-wider no-underline hover:no-underline transition-all duration-200 ${childActive ? 'bg-neutral-800 text-white font-black' : 'text-gray-400 hover:bg-neutral-800/50 hover:text-white'}`}
+                                className={`flex items-center gap-2 rounded-none px-3 py-1.5 text-xs font-bold uppercase tracking-wider no-underline hover:no-underline transition-all duration-200 ${childActive ? 'bg-white/15 text-white font-black border-l-2 border-[#f97316]' : 'text-blue-100/75 hover:bg-white/10 hover:text-white'}`}
                                 style={{ textDecoration: 'none' }}
                               >
-                                <ChildIcon className="h-4 w-4" />
+                                <ChildIcon className={`h-4 w-4 ${childActive ? 'text-[#f97316]' : ''}`} />
                                 <span>{child.title}</span>
                               </Link>
                             </div>
@@ -205,11 +203,11 @@ function HeaderContent() {
           <img
             src="/images/Tos_Peak-Logo.png"
             alt="TOS-PEAK"
-            className="w-10 h-10 object-contain rounded-md bg-white"
+            className="w-10 h-10 object-contain"
           />
           <div className="flex flex-col">
-            <span className="text-lg font-bold">TOS-PEAK</span>
-            <span className="text-xs text-gray-400">FIND YOUR PAIR</span>
+            <span className="text-lg font-bold text-white tracking-wide">TOS-PEAK</span>
+            <span className="text-[10px] font-semibold text-blue-200/70 uppercase tracking-widest">FIND YOUR PAIR</span>
           </div>
         </div>
       ) : (
@@ -217,7 +215,7 @@ function HeaderContent() {
           <img
             src="/images/Tos_Peak-Logo.png"
             alt="TOS-PEAK"
-            className="w-8 h-8 object-contain rounded-md bg-white"
+            className="w-8 h-8 object-contain"
           />
         </div>
       )}

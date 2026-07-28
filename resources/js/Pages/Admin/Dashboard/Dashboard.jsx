@@ -1,6 +1,6 @@
 import React from 'react';
 import AdminLayout from '@/Layouts/Admin/AdminLayout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { 
   Users, 
   Package, 
@@ -267,11 +267,19 @@ export default function Dashboard({ dashboard }) {
 
         {/* Low Stock Alerts (1/3 width) */}
         <div className="bg-white border border-black/[0.08] p-3.5 rounded-none flex flex-col space-y-3.5">
-          <div className="border-b border-black/[0.08] pb-2">
-            <h3 className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 font-sans">LOW STOCK ALERTS</h3>
+          <div className="flex items-center justify-between border-b border-black/[0.08] pb-2">
+            <h3 className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 font-sans">
+              LOW STOCK ALERTS ({dashboard?.lowStockItems?.length || 0})
+            </h3>
+            <Link 
+              href={route('inventory.index')}
+              className="text-[10px] font-bold text-[#f97316] hover:underline uppercase tracking-wider no-underline"
+            >
+              View All
+            </Link>
           </div>
 
-          <div className="flex-1 flex flex-col justify-start space-y-2">
+          <div className="flex-1 flex flex-col justify-start space-y-2 max-h-[360px] overflow-y-auto pr-1">
             {(dashboard?.lowStockItems || []).map((item) => (
               <div 
                 key={item.id} 
@@ -279,10 +287,12 @@ export default function Dashboard({ dashboard }) {
               >
                 <div>
                   <h4 className="text-xs font-bold text-gray-900">{item.name}</h4>
-                  <p className="text-[10px] text-gray-400 font-semibold mt-0.5">{item.category?.name || 'Category'}</p>
+                  <p className="text-[10px] text-gray-400 font-semibold mt-0.5">
+                    {item.variant_label ? `${item.variant_label} • ` : ''}{item.category || 'Category'}
+                  </p>
                 </div>
                 <div>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-none text-[9px] font-bold uppercase border bg-amber-50 text-[#f97316] border-amber-100">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-none text-[9px] font-bold uppercase border bg-amber-50 text-[#f97316] border-amber-100 font-mono">
                     {item.stock} left
                   </span>
                 </div>

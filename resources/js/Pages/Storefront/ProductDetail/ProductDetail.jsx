@@ -7,6 +7,7 @@ import AddToBagSuccessModal from './components/AddToBagSuccessModal';
 import { ArrowLeft, ChevronLeft, ChevronRight, Ruler, ShieldCheck, Plus, Minus, Heart } from 'lucide-react';
 import { Toast } from '@/Components/Toast';
 import { useCart } from '@/Hooks/useCart';
+import axios from 'axios';
 
 function formatPrice(value) {
     return new Intl.NumberFormat('en-US', {
@@ -24,7 +25,7 @@ export default function ProductDetail({ product, variants = [], allSizes = [], r
     // ── Auth & Wishlist ──
     const { auth, wishlist_ids = [] } = usePage().props;
     const isLoggedIn = !!auth?.user;
-    const isCustomer = isLoggedIn && (!auth.user.role || auth.user.role === 'Customer');
+    const isCustomer = isLoggedIn && !auth.user.is_team_member;
 
     const [loginModal, setLoginModal]       = useState({ open: false, message: '' });
     const [isWishlisted, setIsWishlisted]   = useState(() => isLoggedIn && wishlist_ids.includes(product.id));
@@ -167,17 +168,30 @@ export default function ProductDetail({ product, variants = [], allSizes = [], r
             }
         }
 
-        addToCart(activeProduct, quantity, cartItem.size, cartItem.color);
-
         if (isStorefront) {
+            addToCart(activeProduct, quantity, cartItem.size, cartItem.color);
             setTimeout(() => {
                 if (isQtyValid) {
                     setAddedProduct(cartItem);
                     setShowSuccessModal(true);
-                    window.dispatchEvent(new Event('storage'));
                 }
             }, 0);
         } else {
+            // POS Mode: write to pos_cart in localStorage for the Cashier terminal
+            try {
+                const currentCart = JSON.parse(localStorage.getItem('pos_cart')) || [];
+                const existingIndex = currentCart.findIndex(item => item.id === activeProduct.id && item.size === cartItem.size);
+                let updatedCart;
+                if (existingIndex > -1) {
+                    updatedCart = [...currentCart];
+                    updatedCart[existingIndex].quantity += quantity;
+                } else {
+                    updatedCart = [...currentCart, cartItem];
+                }
+                localStorage.setItem('pos_cart', JSON.stringify(updatedCart));
+                window.dispatchEvent(new Event('storage'));
+            } catch (e) {}
+
             router.visit(route(backRoute, { success: `Successfully added ${activeProduct.name} (${activeProduct.size?.name || 'Default Size'}) to bag.` }));
         }
     };
@@ -216,52 +230,16 @@ export default function ProductDetail({ product, variants = [], allSizes = [], r
 
         setWishlistLoading(true);
         try {
-            const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-            const res  = await fetch(route('wishlist.toggle'), {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, Accept: 'application/json' },
-                body:    JSON.stringify({ product_id: product.id }),
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setIsWishlisted(data.wishlisted);
-                
-                // Update local storage so that client-side wishlist page updates immediately
-                const wishlistKey = auth?.user?.id ? `wishlist_items_${auth.user.id}` : 'wishlist_items';
-                const currentWishlist = JSON.parse(localStorage.getItem(wishlistKey)) || [];
-                const exists = currentWishlist.some(item => item.id === product.id);
-                let newWishlist;
-                if (data.wishlisted) {
-                    if (!exists) {
-                        newWishlist = [...currentWishlist, {
-                            id: product.id,
-                            name: product.name,
-                            price: product.price,
-                            image: product.image,
-                            brand: product.brand || { name: 'Nike' },
-                            category: product.category || 'Running',
-                            stock: product.stock !== undefined ? product.stock : 10,
-                            rating: 4.5,
-                            colors: ['#000000', '#D1D5DB', '#EF4444', '#3B82F6'],
-                            sizes: ['8', '9', '10', '11']
-                        }];
-                        localStorage.setItem(wishlistKey, JSON.stringify(newWishlist));
-                    }
-                    window.dispatchEvent(new CustomEvent('toast', {
-                        detail: { message: `Added "${product.name}" to Wishlist.`, type: 'success' }
-                    }));
-                } else {
-                    newWishlist = currentWishlist.filter(item => item.id !== product.id);
-                    localStorage.setItem(wishlistKey, JSON.stringify(newWishlist));
-                    window.dispatchEvent(new CustomEvent('toast', {
-                        detail: { message: `Removed "${product.name}" from Wishlist.`, type: 'info' }
-                    }));
+            const res = await axios.post(route('wishlist.toggle'), { product_id: product.id });
+            const data = res.data;
+            setIsWishlisted(data.wishlisted);
+            window.dispatchEvent(new CustomEvent('toast', {
+                detail: { 
+                    message: data.wishlisted ? `Added "${product.name}" to Wishlist.` : `Removed "${product.name}" from Wishlist.`, 
+                    type: data.wishlisted ? 'success' : 'info' 
                 }
-                window.dispatchEvent(new Event('storage'));
-                
-                // Reload Inertia props to sync wishlist count in header and other components!
-                router.reload();
-            }
+            }));
+            router.reload({ only: ['wishlist_ids'] });
         } catch (_) {} finally {
             setWishlistLoading(false);
         }
@@ -325,7 +303,7 @@ export default function ProductDetail({ product, variants = [], allSizes = [], r
                                 <img
                                     src={galleryImages[activeGalleryIndex].src}
                                     alt={product.name}
-                                    className="h-full w-full object-contain mix-blend-multiply transition-all duration-300 scale-[0.80]"
+                                    className="h-full w-full object-cover transition-all duration-300"
                                     style={galleryImages[activeGalleryIndex].style}
                                 />
                             </div>
@@ -424,7 +402,7 @@ export default function ProductDetail({ product, variants = [], allSizes = [], r
                                 </span>
                             </div>
 
-                            <div className="grid grid-cols-4 gap-1.5">
+                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                                 {allSizes.map((size) => {
                                     const variant = variantBySize[size.id];
                                     const hasVariant = !!variant;
@@ -437,20 +415,24 @@ export default function ProductDetail({ product, variants = [], allSizes = [], r
                                             type="button"
                                             disabled={!inStock}
                                             onClick={() => setSelectedSizeId(size.id)}
-                                            className={`py-2 text-center text-xs font-semibold rounded-none border transition relative ${
+                                            className={`relative flex aspect-square w-full items-center justify-center rounded-none border text-xs font-semibold transition overflow-hidden ${
                                                 isSelected
-                                                    ? 'border-black bg-white text-gray-950 font-bold ring-1 ring-black z-10'
+                                                    ? 'border-black bg-black text-white font-bold z-10 shadow-sm'
                                                     : inStock
-                                                        ? 'border-gray-200 hover:border-black bg-white text-gray-900'
-                                                        : 'border-gray-100 bg-gray-50/50 text-gray-300 cursor-not-allowed opacity-35'
+                                                        ? 'border-gray-200 bg-white text-gray-900 hover:border-black hover:scale-[1.02] cursor-pointer'
+                                                        : 'border-gray-200 bg-gray-50/70 text-gray-400 cursor-not-allowed select-none'
                                             }`}
                                         >
-                                            <span>US {size.name}</span>
+                                            <span className={!inStock ? 'opacity-50' : ''}>{size.name}</span>
                                             
                                             {!inStock && (
-                                                <div className="absolute inset-0 bg-transparent overflow-hidden pointer-events-none">
-                                                    <div className="absolute w-[150%] h-[1px] bg-gray-200 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[32deg]" />
-                                                </div>
+                                                <svg
+                                                    className="absolute inset-0 h-full w-full stroke-gray-300 pointer-events-none"
+                                                    preserveAspectRatio="none"
+                                                    viewBox="0 0 100 100"
+                                                >
+                                                    <line x1="0" y1="100" x2="100" y2="0" strokeWidth="1.2" />
+                                                </svg>
                                             )}
                                         </button>
                                     );
@@ -463,15 +445,10 @@ export default function ProductDetail({ product, variants = [], allSizes = [], r
                             <div className="flex items-center justify-between">
                                 <span className="text-[11px] font-bold text-gray-900 uppercase tracking-tight">Availability</span>
                                 <div className="flex items-center gap-1.5 text-xs font-semibold">
-                                    {activeProduct.stock > 10 ? (
+                                    {activeProduct.stock > 0 ? (
                                         <span className="flex items-center gap-1 text-emerald-600">
                                             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                                             In Stock
-                                        </span>
-                                    ) : activeProduct.stock > 0 ? (
-                                        <span className="flex items-center gap-1 text-amber-600">
-                                            <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-                                            Only {activeProduct.stock} left!
                                         </span>
                                     ) : (
                                         <span className="flex items-center gap-1 text-red-600">
@@ -573,11 +550,11 @@ export default function ProductDetail({ product, variants = [], allSizes = [], r
                                         className="group flex flex-col justify-between border border-gray-100 bg-white p-3 hover:shadow-md transition duration-300 no-underline hover:no-underline"
                                     >
                                         <div>
-                                            <div className="relative aspect-square w-full overflow-hidden bg-[#F6F6F6] p-3 flex items-center justify-center mb-3">
+                                            <div className="relative aspect-square w-full overflow-hidden bg-[#f5f5f5] flex items-center justify-center mb-3">
                                                 <img
                                                     src={relImg}
                                                     alt={p.name}
-                                                    className="h-full w-full object-contain mix-blend-multiply transition-transform duration-500 scale-[0.8] group-hover:scale-[0.85]"
+                                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                                                     onError={(e) => {
                                                         e.currentTarget.src = '/images/placeholder-product.png';
                                                     }}

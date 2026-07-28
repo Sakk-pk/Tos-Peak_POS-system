@@ -8,6 +8,7 @@ import Card from '@/Components/ui/Card';
 import Button from '@/Components/ui/Button';
 import Input from '@/Components/ui/Input';
 import TableContainer from '@/Components/ui/TableContainer';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
 
 
 function formatPrice(value) {
@@ -34,6 +35,7 @@ export default function ProductsPage({
     const [showAddModal, setShowAddModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editingProductId, setEditingProductId] = useState(null);
+    const [deleteModalState, setDeleteModalState] = useState({ show: false, product: null });
 
     
     const { data, setData, post, reset, processing, errors } = useForm({
@@ -150,12 +152,20 @@ export default function ProductsPage({
         setIsEditing(false);
         setEditingProductId(null);
         reset();
-        setData('category_id', String(categories[0]?.id ?? ''));
-        setData('sub_category_id', String(subCategories[0]?.id ?? ''));
-        setData('color_id', String(colors[0]?.id ?? ''));
-        setData('brand_id', String(brands[0]?.id ?? ''));
-        setData('size_id', String(sizes[0]?.id ?? ''));
-        setData('image', null);
+        setData({
+            name: '',
+            description: '',
+            category_id: String(categories[0]?.id ?? ''),
+            sub_category_id: String(subCategories[0]?.id ?? ''),
+            color_id: String(colors[0]?.id ?? ''),
+            brand_id: String(brands[0]?.id ?? ''),
+            size_id: String(sizes[0]?.id ?? ''),
+            price: '',
+            stock: '',
+            low_stock_threshold: 5,
+            low_stock_alert_enabled: true,
+            image: null,
+        });
         setShowAddModal(true);
     };
 
@@ -187,8 +197,11 @@ export default function ProductsPage({
 
     const handleCreateProduct = (event) => {
         event.preventDefault();
-        if (isEditing) {
-            put(route('products.update', data.id), {
+        if (isEditing && editingProductId) {
+            router.post(route('products.update', editingProductId), {
+                ...data,
+                _method: 'patch',
+            }, {
                 preserveScroll: true,
                 onSuccess: () => {
                     closeAddModal();
@@ -204,6 +217,22 @@ export default function ProductsPage({
                 },
             });
         }
+    };
+
+    const handleDeleteProduct = (product) => {
+        if (!product || !product.id) return;
+        setDeleteModalState({
+            show: true,
+            product: product,
+        });
+    };
+
+    const confirmDeleteProduct = () => {
+        if (!deleteModalState.product?.id) return;
+        router.delete(route('products.destroy', deleteModalState.product.id), {
+            preserveScroll: true,
+            onSuccess: () => setDeleteModalState({ show: false, product: null }),
+        });
     };
 
     return (
@@ -335,7 +364,15 @@ export default function ProductsPage({
                 isEditing={isEditing}
             />
 
-
+            <ConfirmModal
+                show={deleteModalState.show}
+                onClose={() => setDeleteModalState({ show: false, product: null })}
+                onConfirm={confirmDeleteProduct}
+                title="Delete Catalog Item"
+                message={`Are you sure you want to delete "${deleteModalState.product?.name || 'this product'}" and all its variants? This action cannot be undone.`}
+                confirmText="Delete Product"
+                variant="danger"
+            />
         </AdminLayout>
     );
 }

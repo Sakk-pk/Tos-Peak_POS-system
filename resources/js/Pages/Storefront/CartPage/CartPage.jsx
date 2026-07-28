@@ -7,6 +7,7 @@ import { useCart } from '@/Hooks/useCart';
 import { 
   ShoppingBag, ArrowRight, ArrowLeft 
 } from 'lucide-react';
+import axios from 'axios';
 
 function formatPrice(value) {
   return new Intl.NumberFormat('en-US', {
@@ -42,25 +43,32 @@ export default function CartPage() {
       return;
     }
 
-    if (newQty > item.stock) {
+    if (item.stock && newQty > item.stock) {
       window.dispatchEvent(new CustomEvent('toast', {
-        detail: { message: `Only ${item.stock} items are in stock for this variant.`, type: 'error' }
+        detail: { message: `Cannot add more than available stock.`, type: 'error' }
       }));
       return;
     }
 
-    updateQuantity(productId, newQty);
+    updateQuantity(productId, newQty, item.size, item.color);
   };
 
   const handleRemoveItem = (productId) => {
     const item = cartItems.find(i => i.id === productId);
-    removeFromCart(productId);
+    removeFromCart(productId, item?.size, item?.color);
     window.dispatchEvent(new CustomEvent('toast', {
       detail: { message: `Removed "${item?.name || 'sneaker'}" from Bag.`, type: 'info' }
     }));
   };
 
-  const handleCheckoutClick = () => {
+  const handleCheckoutClick = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (cartItems.length === 0) {
+      window.dispatchEvent(new CustomEvent('toast', {
+        detail: { message: 'Your shopping bag is empty. Add products before proceeding to checkout.', type: 'error' }
+      }));
+      return;
+    }
     if (!isLoggedIn) {
       setLoginModal({ open: true, message: 'Please sign in to complete your checkout' });
       return;
@@ -75,15 +83,15 @@ export default function CartPage() {
     }
 
     try {
-      const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      await fetch(route('wishlist.toggle'), {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, Accept: 'application/json' },
-        body:    JSON.stringify({ product_id: productId }),
-      });
+      const res = await axios.post(route('wishlist.toggle'), { product_id: productId });
+      const data = res.data;
       window.dispatchEvent(new CustomEvent('toast', {
-        detail: { message: 'Updated wishlist selection.', type: 'success' }
+        detail: { 
+          message: data.wishlisted ? 'Added to wishlist.' : 'Removed from wishlist.', 
+          type: data.wishlisted ? 'success' : 'info' 
+        }
       }));
+      router.reload({ only: ['wishlist_ids'] });
     } catch (_) {}
   };
 
@@ -102,20 +110,17 @@ export default function CartPage() {
         </Link>
 
         {/* Title */}
-        <div className="pb-6 mb-8">
+        <div className="mb-6">
           <h1 className="text-3xl font-black uppercase tracking-tight text-neutral-900 flex items-baseline gap-3" style={{ fontFamily: "'Syne', sans-serif" }}>
             YOUR BAG
             <span className="text-sm font-semibold text-neutral-400 tracking-normal capitalize">({cartCount} {cartCount === 1 ? 'item' : 'items'})</span>
           </h1>
-          <p className="text-[11px] text-neutral-400 font-semibold mt-1">
-            Items in your bag are not reserved — check out now to make them yours.
-          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           
           {/* Left Col: Cart items list */}
-          <div className="lg:col-span-8 space-y-4">
+          <div className="lg:col-span-8 space-y-3">
             {cartItems.length === 0 ? (
               <div className="text-center py-20 bg-gray-50/50 rounded-none border border-dashed border-black/10 flex flex-col items-center justify-center animate-fade-in">
                 <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-none bg-neutral-100 border border-neutral-200/50 mb-4">
@@ -133,7 +138,7 @@ export default function CartPage() {
                 </Link>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {cartItems.map((item) => (
                   <CartItemRow
                     key={item.id}
@@ -176,15 +181,12 @@ export default function CartPage() {
 
               {/* Checkout CTA */}
               <button 
+                type="button"
                 onClick={handleCheckoutClick}
-                className="w-full flex h-12 items-center justify-center gap-2 bg-black hover:bg-neutral-900 text-white text-xs font-black uppercase tracking-widest rounded-none transition active:scale-[0.98]"
+                className="w-full flex h-12 items-center justify-center gap-2 bg-black hover:bg-neutral-900 text-white text-xs font-black uppercase tracking-widest rounded-none transition active:scale-[0.98] cursor-pointer"
               >
                 PROCEED TO CHECKOUT <ArrowRight size={14} />
               </button>
-
-              <div className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider text-center leading-relaxed">
-                Security guaranteed. Scan Bakong KHQR for express authentication.
-              </div>
             </div>
           )}
 
@@ -197,6 +199,7 @@ export default function CartPage() {
         isOpen={loginModal.open}
         onClose={() => setLoginModal({ open: false, message: '' })}
         message={loginModal.message}
+        redirectTo={route('checkout.index')}
       />
     </StorefrontLayout>
   );

@@ -3,7 +3,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import StorefrontLayout from '@/Layouts/Storefront/StorefrontLayout';
 import Modal from '@/Components/Modal';
 import { 
-  User, Shield, Sliders, Bell, Link2, AlertTriangle, 
+  User, Shield, Sliders, Link2, AlertTriangle, 
   Eye, EyeOff, Loader2, ArrowLeft, Check, ShieldAlert,
   Laptop, Sun, Moon, MapPin, Trash2, Edit2, Download,
   Lock, Smartphone, LaptopIcon, Globe, Info, X,
@@ -83,24 +83,16 @@ export default function AccountSettings({ mustVerifyEmail, status, twoFactorEnab
     }
   };
 
-  // Saved Addresses State
+  const addressesKey = user?.id ? `tos_saved_addresses_${user.id}` : null;
+
+  // Saved Addresses State — strictly scoped to authenticated user_id
   const [savedAddresses, setSavedAddresses] = useState(() => {
     try {
-      const stored = localStorage.getItem('tos_saved_addresses');
-      return stored ? JSON.parse(stored) : [
-        {
-          id: 'addr-default-1',
-          label: 'Home',
-          recipientName: user?.name || 'Customer Name',
-          phone: user?.phone || '012345678',
-          streetAddress: 'Russian Blvd (110), Cadt Building',
-          apartment: 'Apartment 402, Building A',
-          city: 'Phnom Penh',
-          stateProv: 'Phnom Penh',
-          zipCode: '12000',
-          isDefault: true
-        }
-      ];
+      if (user?.id) {
+        const userStored = localStorage.getItem(`tos_saved_addresses_${user.id}`);
+        return userStored ? JSON.parse(userStored) : [];
+      }
+      return [];
     } catch (_) {
       return [];
     }
@@ -122,10 +114,14 @@ export default function AccountSettings({ mustVerifyEmail, status, twoFactorEnab
   const [formIsDefault, setFormIsDefault] = useState(false);
   const [locating, setLocating] = useState(false);
 
-  // Sync saved addresses to localStorage
+  // Sync saved addresses to localStorage strictly for the logged-in user
   useEffect(() => {
-    localStorage.setItem('tos_saved_addresses', JSON.stringify(savedAddresses));
-  }, [savedAddresses]);
+    if (user?.id && addressesKey) {
+      try {
+        localStorage.setItem(addressesKey, JSON.stringify(savedAddresses));
+      } catch (e) {}
+    }
+  }, [savedAddresses, addressesKey, user?.id]);
 
   // Privacy expandable state
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);

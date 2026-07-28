@@ -70,6 +70,9 @@ export default function LoginModal({
                 onSuccess: () => {
                     setProcessing(false);
                     onClose?.();
+                    if (redirectTo) {
+                        router.visit(redirectTo);
+                    }
                 },
                 onFinish: () => setProcessing(false),
             }
@@ -117,13 +120,20 @@ export default function LoginModal({
                     <h2 className="text-xl font-bold text-white leading-snug">
                         {message}
                     </h2>
-                    <p className="mt-1 text-sm text-white/50">
+                    <p className="mt-1 text-sm text-white/60">
                         New here?{' '}
+                        <a
+                            href={route('register')}
+                            className="font-bold text-white underline underline-offset-2 hover:text-white/90 transition"
+                        >
+                            Register an account
+                        </a>
+                        {' '}or{' '}
                         <a
                             href={route('login')}
                             className="text-white/80 underline underline-offset-2 hover:text-white transition"
                         >
-                            Go to full login page
+                            full login page
                         </a>
                     </p>
                 </div>
@@ -263,6 +273,17 @@ export default function LoginModal({
                         </span>
                         Continue with Google
                     </a>
+
+                    {/* Register option */}
+                    <div className="pt-2 text-center text-xs text-gray-500 font-medium">
+                        Don't have an account yet?{' '}
+                        <a
+                            href={route('register')}
+                            className="font-bold text-gray-900 underline underline-offset-2 hover:text-black transition"
+                        >
+                            Register now
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>

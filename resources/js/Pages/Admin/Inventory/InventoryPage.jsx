@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import AdminLayout from '@/Layouts/Admin/AdminLayout';
 import { Head, router } from '@inertiajs/react';
-import { Search, AlertTriangle, Tag, Package, Boxes, Eye, Check, Loader2, SlidersHorizontal, ShoppingBag, XCircle, Plus, DollarSign } from 'lucide-react';
+import { Search, AlertTriangle, Tag, Package, Boxes, Eye, Check, Loader2, SlidersHorizontal, ShoppingBag, XCircle, Plus, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import axios from 'axios';
 import InventoryDetailsModal from './components/InventoryDetailsModal';
 import InventoryProductRow from './components/InventoryProductRow';
@@ -32,6 +32,7 @@ export default function InventoryPage({
     const [showViewModal, setShowViewModal] = useState(false);
     const [viewProductId, setViewProductId] = useState(null);
     const [showMoreFilters, setShowMoreFilters] = useState(false);
+    const [showLowStockAlerts, setShowLowStockAlerts] = useState(true);
 
     // Modal States for stock management
     const [selectedItem, setSelectedItem] = useState(null);
@@ -90,6 +91,8 @@ export default function InventoryPage({
                     description: p.description,
                     price: p.price,
                     image: p.image,
+                    alert_level: p.alert_level ?? p.low_stock_threshold ?? 15,
+                    low_stock_threshold: p.low_stock_threshold ?? p.alert_level ?? 15,
                     variants: []
                 };
             }
@@ -98,21 +101,45 @@ export default function InventoryPage({
         return Object.values(groups);
     }, [filteredItems]);
 
-    // Stats calculations
+    const allGroupedProducts = useMemo(() => {
+        const groups = {};
+        items.forEach(p => {
+            if (!groups[p.name]) {
+                groups[p.name] = {
+                    id: p.id,
+                    name: p.name,
+                    brand: p.brand,
+                    category: p.category,
+                    sub_category: p.sub_category,
+                    image: p.image,
+                    price: p.price,
+                    alert_level: p.alert_level ?? p.low_stock_threshold ?? 15,
+                    low_stock_threshold: p.low_stock_threshold ?? p.alert_level ?? 15,
+                    variants: [],
+                };
+            }
+            groups[p.name].variants.push(p);
+        });
+        return Object.values(groups);
+    }, [items]);
+
+    // Stats calculations based on product groups
     const stats = useMemo(() => {
         let totalItems = 0;
         let lowStockCount = 0;
         let outOfStockCount = 0;
         let totalValue = 0;
 
-        items.forEach((item) => {
-            totalItems += item.stock;
-            if (item.stock === 0) {
+        allGroupedProducts.forEach((group) => {
+            const groupStock = group.variants.reduce((acc, v) => acc + (v.stock || 0), 0);
+            const threshold = 15;
+            totalItems += groupStock;
+            if (groupStock === 0) {
                 outOfStockCount++;
-            } else if (item.stock <= item.alert_level) {
+            } else if (groupStock > 0 && groupStock <= threshold) {
                 lowStockCount++;
             }
-            totalValue += item.price * item.stock;
+            totalValue += (group.price || 0) * groupStock;
         });
 
         return {
@@ -121,11 +148,15 @@ export default function InventoryPage({
             outOfStock: outOfStockCount,
             totalValue,
         };
-    }, [items]);
+    }, [allGroupedProducts]);
 
     const lowStockAlertsLocal = useMemo(() => {
-        return items.filter(v => v.stock <= (v.alert_level ?? 5));
-    }, [items]);
+        return allGroupedProducts.filter((group) => {
+            const groupStock = group.variants.reduce((acc, v) => acc + (v.stock || 0), 0);
+            const threshold = 15;
+            return groupStock > 0 && groupStock <= threshold;
+        });
+    }, [allGroupedProducts]);
 
     const openViewModal = (group) => {
         setViewProductId(group.id);
@@ -239,7 +270,7 @@ export default function InventoryPage({
     };
 
     return (
-        <AdminLayout navbarTitle="Inventory Management" contentClassName="px-8 py-6 space-y-6">
+        <AdminLayout navbarTitle="Inventory Management" contentClassName="px-6 py-4 space-y-3.5">
             <Head title="Inventory Management" />
 
             {/* Custom UI Toast Alert */}
@@ -257,81 +288,99 @@ export default function InventoryPage({
             )}
 
             {/* ── Inventory Stats ────────────────────────────────────────── */}
-            <section className="grid gap-6 grid-cols-1 md:grid-cols-3">
+            <section className="grid gap-3 grid-cols-1 md:grid-cols-3">
                 {/* Total Products */}
-                <div className="bg-white border border-black/[0.06] rounded-2xl p-6 flex items-center gap-4 shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:-translate-y-0.5 transition duration-200 select-none">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-50 text-black border border-black/[0.04] shadow-sm">
-                        <Boxes size={20} />
-                    </div>
+                <div className="summary-card rounded-xl bg-white border border-black/[0.08] p-3.5 flex items-center justify-between select-none shadow-sm">
                     <div>
-                        <h4 className="text-2xl font-black font-display text-black leading-none">{items.length}</h4>
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1.5 block font-display">Total Products</span>
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Total Products</span>
+                        <h4 className="text-xl font-extrabold text-black mt-0.5 leading-none">{items.length}</h4>
                     </div>
+                    <span className="p-2 bg-neutral-100 border border-neutral-200 text-neutral-800 summary-card rounded-lg"><Boxes size={14} /></span>
                 </div>
 
                 {/* Low Stock Warnings */}
-                <div className="bg-white border border-black/[0.06] rounded-2xl p-6 flex items-center gap-4 shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:-translate-y-0.5 transition duration-200 select-none">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-[#f97316] border border-orange-100 shadow-sm">
-                        <AlertTriangle size={20} />
-                    </div>
+                <div 
+                    onClick={() => setShowLowStockAlerts(prev => !prev)}
+                    className="summary-card rounded-xl bg-white border border-black/[0.08] p-3.5 flex items-center justify-between select-none shadow-sm cursor-pointer hover:border-[#f97316]/50 transition-all duration-200 group"
+                    title="Click to show/hide low stock products"
+                >
                     <div>
-                        <h4 className="text-2xl font-black font-display text-[#f97316] leading-none">{stats.lowStock}</h4>
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1.5 block font-display">Low Stock</span>
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Low Stock</span>
+                            <span className="text-[9px] font-bold text-[#f97316] group-hover:underline">
+                                ({showLowStockAlerts ? 'Hide' : 'Show'})
+                            </span>
+                        </div>
+                        <h4 className="text-xl font-extrabold text-[#f97316] mt-0.5 leading-none">{stats.lowStock}</h4>
                     </div>
+                    <span className="p-2 bg-orange-50 border border-orange-200 text-[#f97316] summary-card rounded-lg group-hover:bg-[#f97316] group-hover:text-white transition-colors duration-200">
+                        <AlertTriangle size={14} />
+                    </span>
                 </div>
 
                 {/* Inventory Value */}
-                <div className="bg-white border border-black/[0.06] rounded-2xl p-6 flex items-center gap-4 shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:-translate-y-0.5 transition duration-200 select-none">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-50 text-black border border-black/[0.04] shadow-sm">
-                        <DollarSign size={20} />
-                    </div>
+                <div className="summary-card rounded-xl bg-white border border-black/[0.08] p-3.5 flex items-center justify-between select-none shadow-sm">
                     <div>
-                        <h4 className="text-2xl font-black font-display text-black leading-none">{formatPrice(stats.totalValue)}</h4>
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1.5 block font-display">Inventory Value</span>
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Inventory Value</span>
+                        <h4 className="text-xl font-extrabold text-black mt-0.5 leading-none">{formatPrice(stats.totalValue)}</h4>
                     </div>
+                    <span className="p-2 bg-neutral-100 border border-neutral-200 text-neutral-800 summary-card rounded-lg"><DollarSign size={14} /></span>
                 </div>
             </section>
 
             {/* ── Active Alerts ─────────────────────────────────────────── */}
             {lowStockAlertsLocal.length > 0 && (
-                <section className="space-y-3">
-                    <span className="text-[9px] font-black font-display text-gray-400 uppercase tracking-widest block">
-                        Alert Center ({lowStockAlertsLocal.length})
-                    </span>
-                    <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                        {lowStockAlertsLocal.map((alert) => {
-                            const isOutOfStock = alert.stock === 0;
-                            const indicatorColor = isOutOfStock ? 'bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-[#f97316] shadow-[0_0_8px_rgba(249,115,22,0.5)]';
-                            return (
-                                <div 
-                                    key={alert.id}
-                                    className="bg-white border border-black/[0.06] rounded-2xl p-4 flex items-center justify-between shadow-sm hover:border-black/10 transition-all duration-200"
-                                >
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <div className={`h-2.5 w-2.5 rounded-full shrink-0 ${indicatorColor}`} />
-                                        <div className="min-w-0">
-                                            <h5 className="text-xs font-bold text-gray-900 truncate leading-tight">
-                                                {alert.name}
-                                            </h5>
-                                            <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
-                                                Size {alert.size} &bull; <span className={isOutOfStock ? "text-red-600 font-extrabold" : "text-orange-600 font-extrabold"}>{alert.stock} left</span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => {
-                                            setSelectedItem(alert);
-                                            setInputQuantity(1);
-                                            setModalType('stock-in');
-                                        }}
-                                        className="text-[10px] font-black text-gray-700 hover:text-black bg-gray-50 hover:bg-gray-100 border border-black/10 rounded-xl px-3 py-1.5 transition-all duration-200 uppercase tracking-wider shrink-0 cursor-pointer"
-                                    >
-                                        Restock
-                                    </button>
-                                </div>
-                            );
-                        })}
+                <section className="space-y-2">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[9px] font-black font-display text-gray-400 uppercase tracking-widest block">
+                            Alert Center ({lowStockAlertsLocal.length})
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setShowLowStockAlerts(!showLowStockAlerts)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-gray-50 border border-black/10 text-[10px] font-bold text-gray-700 hover:text-black rounded-lg transition-all duration-200 uppercase tracking-wider cursor-pointer shadow-sm active:scale-95"
+                        >
+                            <span>{showLowStockAlerts ? 'Hide Low Stock Products' : 'Show Low Stock Products'}</span>
+                            {showLowStockAlerts ? <ChevronUp size={12} className="text-[#f97316]" /> : <ChevronDown size={12} className="text-[#f97316]" />}
+                        </button>
                     </div>
+
+                    {showLowStockAlerts && (
+                        <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 animate-modal-in">
+                            {lowStockAlertsLocal.map((alert) => {
+                                const isOutOfStock = alert.stock === 0;
+                                const indicatorColor = isOutOfStock ? 'bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-[#f97316] shadow-[0_0_8px_rgba(249,115,22,0.5)]';
+                                return (
+                                    <div 
+                                        key={alert.id}
+                                        className="rounded-none bg-white border border-black/[0.08] p-2.5 flex items-center justify-between shadow-sm hover:border-black/20 transition-all duration-200"
+                                    >
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <div className={`h-2 w-2 rounded-none shrink-0 ${indicatorColor}`} />
+                                            <div className="min-w-0">
+                                                <h5 className="text-xs font-bold text-gray-900 truncate leading-tight">
+                                                    {alert.name}
+                                                </h5>
+                                                <p className="text-[10px] text-gray-400 font-bold mt-0.5 uppercase tracking-wider">
+                                                    Size {alert.size} &bull; <span className={isOutOfStock ? "text-red-600 font-extrabold" : "text-orange-600 font-extrabold"}>{alert.stock} left</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                setSelectedItem(alert);
+                                                setInputQuantity(1);
+                                                setModalType('stock-in');
+                                            }}
+                                            className="text-[10px] font-black text-gray-700 hover:text-black bg-gray-50 hover:bg-gray-100 border border-black/10 rounded-none px-2.5 py-1 transition-all duration-200 uppercase tracking-wider shrink-0 cursor-pointer"
+                                        >
+                                            Restock
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </section>
             )}
 

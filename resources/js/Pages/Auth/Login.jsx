@@ -32,7 +32,7 @@ export default function Login({ status, canResetPassword }) {
                     </p>
                     <div>
                         <h2 className="text-3xl font-semibold tracking-tight text-gray-900">
-                            Welcome back.
+                            Welcome.
                         </h2>
                         <p className="mt-2 text-sm leading-6 text-gray-600">
                             Use your email and password, or continue with Google.
@@ -104,6 +104,16 @@ export default function Login({ status, canResetPassword }) {
                     >
                         {processing ? 'Signing in...' : 'Sign in'}
                     </PrimaryButton>
+
+                    <div className="flex items-center justify-center text-center text-sm font-medium text-gray-600 pt-1">
+                        Don't have an account?{' '}
+                        <Link
+                            href={route('register')}
+                            className="ml-1.5 font-bold text-amber-600 hover:text-amber-700 underline underline-offset-4 transition"
+                        >
+                            Register
+                        </Link>
+                    </div>
                 </form>
 
                 <div className="relative">

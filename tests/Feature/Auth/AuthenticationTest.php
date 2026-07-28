@@ -31,13 +31,14 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/');
     }
 
-    public function test_admin_users_are_redirected_to_dashboard(): void
+    public function test_team_members_with_dashboard_permission_are_redirected_to_dashboard(): void
     {
-        // Create the Admin role (roles are seeded in production, not in test DB)
-        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
+        \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'dashboard', 'guard_name' => 'web']);
+        $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Dashboard Team', 'guard_name' => 'web']);
+        $role->syncPermissions(['dashboard']);
 
-        $admin = User::factory()->create(['status' => 'Active']);
-        $admin->assignRole('Admin');
+        $admin = User::factory()->create(['status' => 'Active', 'is_team_member' => true]);
+        $admin->assignRole($role);
 
         $response = $this->post('/login', [
             'email'    => $admin->email,

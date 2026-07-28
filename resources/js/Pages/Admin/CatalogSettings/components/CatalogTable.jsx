@@ -5,6 +5,7 @@ import Card from '@/Components/ui/Card';
 import Button from '@/Components/ui/Button';
 import Input from '@/Components/ui/Input';
 import TableContainer from '@/Components/ui/TableContainer';
+import { getAccurateColorHex } from '@/Utils/colorHelper';
 
 export default function CatalogTable({
     activeTab,
@@ -136,7 +137,7 @@ export default function CatalogTable({
                                         {activeTab === 'Colors' ? (
                                             <span
                                                 className="h-6 w-6 rounded-lg border border-black/10 shadow-sm shrink-0"
-                                                style={{ backgroundColor: item.value }}
+                                                style={{ backgroundColor: getAccurateColorHex(item.name, item.value) }}
                                             />
                                         ) : null}
                                         {isEditing ? (

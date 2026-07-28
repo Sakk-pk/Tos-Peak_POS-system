@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Wishlist;
+use App\Models\Customer\Wishlist;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -23,25 +23,10 @@ class HandleInertiaRequests extends Middleware
         return parent::version($request);
     }
 
-    /**
-     * All permissions in the simplified View / Manage model.
-     * These are always included in the `auth.can` map so the frontend can
-     * reliably check `auth.can['manage-products']` etc. regardless of role.
-     */
+    /** Module permissions shared with the permission-driven administration UI. */
     private const ALL_PERMISSIONS = [
-        'view-dashboard',
-        'manage-pos',
-        'manage-products',
-        'manage-variants',
-        'manage-inventory',
-        'manage-orders',
-        'manage-payments',
-        'manage-customers',
-        'manage-staff',
-        'manage-roles',
-        'view-notifications',
-        'view-reports',
-        'manage-settings',
+        'dashboard', 'pos', 'catalog', 'products', 'inventory', 'orders',
+        'customers', 'team-members', 'roles',
     ];
 
     /**
@@ -53,38 +38,29 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
-        // Build can-map: Admin gets everything true; others get their actual perms.
-        $canMap = [];
+        // Flush Spatie's in-process permission cache and eager-load the user's
+        // roles + direct permissions *before* any ->can() call is made.
+        // Without this, $canMap is built from a bare User model with no loaded
+        // relations, causing every permission check to return false regardless
+        // of what the DB actually holds.
         if ($user) {
-            $isAdmin = $user->hasRole('Admin');
-            if ($isAdmin) {
-                // Admin bypasses all checks on the backend; reflect that in the frontend too
-                foreach (self::ALL_PERMISSIONS as $perm) {
-                    $canMap[$perm] = true;
-                }
-            } else {
-                // Pre-set all to false, then flip the ones the user actually has
-                foreach (self::ALL_PERMISSIONS as $perm) {
-                    $canMap[$perm] = false;
-                }
-                $userPermissions = $user->loadMissing('roles.permissions')
-                    ->roles
-                    ->flatMap(fn($role) => $role->permissions->pluck('name'))
-                    ->unique()
-                    ->all();
-                foreach ($userPermissions as $perm) {
-                    if (isset($canMap[$perm])) {
-                        $canMap[$perm] = true;
-                    }
-                }
-            }
+            app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+            $user->load('roles.permissions', 'permissions');
         }
+
+        $canMap = collect(self::ALL_PERMISSIONS)
+            ->mapWithKeys(fn (string $permission) => [$permission => $user?->can($permission) ?? false])
+            ->all();
 
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $user ? array_merge($user->toArray(), [
-                    'role'         => $user->roles->first()?->name ?? 'Customer',
-                    'redirect_url' => $this->getRedirectUrl($user),
+                    'redirect_url'     => $this->getRedirectUrl($user),
+                    'points'           => (int) ($user->points ?? 100),
+                    'redeemed_vouchers'=> $user->redeemed_vouchers ?: [],
+                    // Lean list of role names for UI-only checks (e.g. Admin-only storefront button).
+                    // Never use this for server-side authorization — only auth.can and route middleware do that.
+                    'role_names'       => $user->getRoleNames()->values()->all(),
                 ]) : null,
                 'can' => $canMap,
             ],
@@ -93,36 +69,20 @@ class HandleInertiaRequests extends Middleware
                 'error'   => fn () => $request->session()->get('error'),
                 'order'   => fn () => $request->session()->get('order'),
             ],
-            'unread_notifications_count' => fn () => $user
-                ? $user->unreadNotifications()->count()
-                : 0,
-            'lowStockAlerts' => fn () => $user
-                ? \App\Models\Product::with(['color', 'size'])
-                    ->whereRaw('stock <= COALESCE(low_stock_threshold, ?) AND stock > 0', [
-                        (int) config('inventory.low_stock_threshold', 15)
-                    ])
-                    ->orderBy('stock')
-                    ->limit(20)
-                    ->get()
-                    ->map(fn($p) => [
-                        'id'    => $p->id,
-                        'name'  => $p->name,
-                        'stock' => $p->stock,
-                        'size'  => $p->size?->name ?? 'N/A',
-                        'color' => $p->color?->name ?? 'N/A',
-                    ])
-                    ->all()
-                : [],
             // Wishlist product IDs — for hydrating heart icons without extra API calls
             'wishlist_ids' => fn () => $user
-                ? Wishlist::where('user_id', $user->id)->pluck('product_id')->values()->all()
+                ? Wishlist::where('user_id', $user->id)
+                    ->whereHas('product', fn ($q) => $q->where('stock', '>', 0))
+                    ->pluck('product_id')
+                    ->values()
+                    ->all()
                 : [],
             // Load Dynamic Categories and their associated Sub-Categories
-            'categories' => fn () => \App\Models\Category::orderBy('view_order', 'asc')
+            'categories' => fn () => \App\Models\Product\Category::orderBy('view_order', 'asc')
                 ->orderBy('name', 'asc')
                 ->get()
                 ->map(function($c) {
-                    $subQuery = \App\Models\CatalogAttribute::where('type', 'sub_category');
+                    $subQuery = \App\Models\Product\CatalogAttribute::where('type', 'sub_category');
                     if ($c->name === 'Unisex') {
                         $subQuery->whereIn('name', ['Sneakers']);
                     } elseif ($c->name === 'Sport') {
@@ -144,6 +104,10 @@ class HandleInertiaRequests extends Middleware
 
     /**
      * Compute first allowed redirect path for the user.
+     *
+     * By the time this is called, share() has already flushed Spatie's
+     * permission cache and eager-loaded roles + permissions on $user, so
+     * ->can() calls here are safe and accurate.
      */
     private function getRedirectUrl($user): string
     {
@@ -151,11 +115,11 @@ class HandleInertiaRequests extends Middleware
             return '/';
         }
 
-        $roleName = $user->roles->first()?->name ?? 'Customer';
-        if ($roleName === 'Customer') {
+        if (! $user->is_team_member) {
             return '/';
         }
 
-        return '/dashboard';
+        return $user->can('dashboard') ? '/dashboard'
+            : ($user->can('pos') ? '/point-of-sale' : '/');
     }
 }

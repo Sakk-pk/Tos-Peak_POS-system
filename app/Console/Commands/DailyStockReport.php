@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\Product;
+use App\Models\Product\Product;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 

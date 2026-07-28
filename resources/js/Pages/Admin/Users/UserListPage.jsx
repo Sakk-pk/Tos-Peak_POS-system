@@ -3,6 +3,7 @@ import AdminLayout from '@/Layouts/Admin/AdminLayout';
 import UserFormModal from './components/UserFormModal';
 import InviteMemberModal from './components/InviteMemberModal';
 import AddMemberModal from './components/AddMemberModal';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
 import Modal from '@/Components/Modal';
 import { Head, router, useForm } from '@inertiajs/react';
 import {
@@ -23,6 +24,7 @@ import {
     Filter,
 } from 'lucide-react';
 
+
 function makeInitials(name = '') {
     return name
         .split(' ')
@@ -30,52 +32,6 @@ function makeInitials(name = '') {
         .map((part) => part.charAt(0).toUpperCase())
         .join('')
         .slice(0, 2);
-}
-
-function ConfirmModal({ show, onClose, onConfirm, title, message, confirmText, cancelText, variant = 'danger' }) {
-    return (
-        <Modal show={show} onClose={onClose} maxWidth="sm">
-            <div className="p-6 text-xs text-foreground bg-white rounded-3xl border border-black/[0.06] shadow-2xl">
-                <div className="flex items-start gap-4">
-                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
-                        variant === 'danger' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
-                        variant === 'warning' ? 'bg-amber-50 text-amber-605 border border-amber-100' :
-                        'bg-orange-50 text-[#f97316] border border-orange-100 shadow-sm'
-                    }`}>
-                        {variant === 'danger' ? (
-                            <AlertCircle size={18} />
-                        ) : (
-                            <Clock size={18} />
-                        )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-black text-black uppercase tracking-wider font-display">{title}</h3>
-                        <p className="mt-2 text-gray-500 font-semibold leading-relaxed text-xs">{message}</p>
-                    </div>
-                </div>
-                <div className="mt-6 flex justify-end gap-3 border-t border-black/[0.06] pt-4">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="h-10 rounded-xl border border-black/10 bg-white px-4 text-xs font-bold uppercase tracking-wider text-gray-700 hover:bg-gray-50 transition active:scale-95 duration-200"
-                    >
-                        {cancelText || 'Cancel'}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onConfirm}
-                        className={`h-10 rounded-xl px-4 text-xs font-bold uppercase tracking-wider text-white shadow-sm transition active:scale-95 duration-200 ${
-                            variant === 'danger' ? 'bg-rose-600 hover:bg-rose-700' :
-                            variant === 'warning' ? 'bg-amber-600 hover:bg-amber-700' :
-                            'bg-black hover:bg-neutral-900'
-                        }`}
-                    >
-                        {confirmText || 'Confirm'}
-                    </button>
-                </div>
-            </div>
-        </Modal>
-    );
 }
 
 export default function UserListPage({ users = [], invitations = [], roles = [] }) {
@@ -261,33 +217,33 @@ export default function UserListPage({ users = [], invitations = [], roles = [] 
 
             {/* ── Page Metrics ─────────────────────────────────────────── */}
             <section className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                <div className="bg-white border border-black/[0.06] rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:-translate-y-0.5 transition duration-200 select-none">
+                <div className="summary-card bg-white border border-black/[0.06] rounded-xl p-5 flex items-center justify-between shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:-translate-y-0.5 transition duration-200 select-none">
                     <div>
                         <span className="text-[10px] font-black font-display text-gray-400 uppercase tracking-widest">Total staff</span>
                         <h4 className="text-2xl font-black font-display text-black mt-1.5 leading-none">{stats.totalUsers}</h4>
                     </div>
-                    <span className="p-2.5 rounded-xl bg-gray-50 border border-black/[0.04] text-black"><UserCircle size={16} /></span>
+                    <span className="p-2.5 summary-card rounded-lg bg-gray-50 border border-black/[0.04] text-black"><UserCircle size={16} /></span>
                 </div>
-                <div className="bg-white border border-black/[0.06] rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:-translate-y-0.5 transition duration-200 select-none">
+                <div className="summary-card bg-white border border-black/[0.06] rounded-xl p-5 flex items-center justify-between shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:-translate-y-0.5 transition duration-200 select-none">
                     <div>
                         <span className="text-[10px] font-black font-display text-gray-400 uppercase tracking-widest">Active staff</span>
                         <h4 className="text-2xl font-black font-display text-black mt-1.5 leading-none">{stats.activeUsers}</h4>
                     </div>
-                    <span className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600"><CheckCircle2 size={16} /></span>
+                    <span className="p-2.5 summary-card rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600"><CheckCircle2 size={16} /></span>
                 </div>
-                <div className="bg-white border border-black/[0.06] rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:-translate-y-0.5 transition duration-200 select-none">
+                <div className="summary-card bg-white border border-black/[0.06] rounded-xl p-5 flex items-center justify-between shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:-translate-y-0.5 transition duration-200 select-none">
                     <div>
                         <span className="text-[10px] font-black font-display text-gray-400 uppercase tracking-widest">Pending invites</span>
                         <h4 className="text-2xl font-black font-display text-black mt-1.5 leading-none">{stats.pendingInvites}</h4>
                     </div>
-                    <span className="p-2.5 rounded-xl bg-gray-50 border border-black/[0.04] text-black"><Clock size={16} /></span>
+                    <span className="p-2.5 summary-card rounded-lg bg-gray-50 border border-black/[0.04] text-black"><Clock size={16} /></span>
                 </div>
-                <div className="bg-white border border-black/[0.06] rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:-translate-y-0.5 transition duration-200 select-none">
+                <div className="summary-card bg-white border border-black/[0.06] rounded-xl p-5 flex items-center justify-between shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:-translate-y-0.5 transition duration-200 select-none">
                     <div>
                         <span className="text-[10px] font-black font-display text-gray-400 uppercase tracking-widest">Expired invites</span>
                         <h4 className="text-2xl font-black font-display text-rose-600 mt-1.5 leading-none">{stats.expiredInvites}</h4>
                     </div>
-                    <span className="p-2.5 rounded-xl bg-rose-50 border border-rose-100 text-rose-600"><XCircle size={16} /></span>
+                    <span className="p-2.5 summary-card rounded-lg bg-rose-50 border border-rose-100 text-rose-600"><XCircle size={16} /></span>
                 </div>
             </section>
 
@@ -400,7 +356,7 @@ export default function UserListPage({ users = [], invitations = [], roles = [] 
                             </button>
                         )}
 
-                        {/* Add Member Button */}
+                        {/* Add Team Member — direct creation */}
                         <button
                             onClick={() => setShowAddModal(true)}
                             className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-black px-4 text-xs font-bold text-white uppercase tracking-wider hover:bg-neutral-900 active:scale-95 transition-all duration-200 shadow-sm"
@@ -409,13 +365,13 @@ export default function UserListPage({ users = [], invitations = [], roles = [] 
                             <UserPlus size={13} /> Add Member
                         </button>
 
-                         {/* Invite Button */}
-                         <button
+                        {/* Invite via Email */}
+                        <button
                             onClick={() => setShowInviteModal(true)}
                             className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-black/10 bg-white px-4 text-xs font-bold text-gray-700 uppercase tracking-wider hover:bg-gray-50 hover:text-black active:scale-95 transition-all duration-200 shadow-sm"
                             type="button"
                         >
-                            <Mail size={13} /> Invite via Email
+                            <Mail size={13} /> Invite Staff
                         </button>
                     </div>
                 </div>
@@ -446,7 +402,7 @@ export default function UserListPage({ users = [], invitations = [], roles = [] 
                                         <tr key={member.id} className="hover:bg-gray-50/20 transition-colors">
                                             <td className="px-6 py-3.5">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-black text-white text-[10px] font-black font-display" style={{ fontFamily: "'Syne', sans-serif" }}>
+                                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-black text-white text-[10px] font-black font-display">
                                                         {makeInitials(member.name)}
                                                     </div>
                                                     <div>

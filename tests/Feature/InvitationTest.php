@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Invitation;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
@@ -24,6 +25,8 @@ class InvitationTest extends TestCase
 
         $this->role = Role::firstOrCreate(['name' => 'Manager', 'guard_name' => 'web']);
         $adminRole = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'team-members', 'guard_name' => 'web']);
+        $adminRole->syncPermissions(['team-members']);
 
         $this->admin = User::factory()->create([
             'is_team_member' => true,
@@ -270,4 +273,3 @@ class InvitationTest extends TestCase
         $this->assertAuthenticatedAs($customer);
     }
 }
-

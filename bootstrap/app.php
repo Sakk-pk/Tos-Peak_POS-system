@@ -20,8 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
 
             'ensureFrontendRequestsAreStateful' => \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            'jwt' => \App\Http\Middleware\jwtMiddleware::class,
-            'jwt.auth' => \App\Http\Middleware\jwtMiddleware::class,
+            'jwt' => \App\Http\Middleware\JwtMiddleware::class,
+            'jwt.auth' => \App\Http\Middleware\JwtMiddleware::class,
         ]);
         
         $middleware->web(append: [

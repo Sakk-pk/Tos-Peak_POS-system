@@ -2,9 +2,9 @@
 
 namespace App\Jobs;
 
-use App\Models\Product;
-use App\Models\TelegramNotificationLog;
-use App\Services\TelegramService;
+use App\Models\Product\Product;
+use App\Models\Notification\TelegramNotificationLog;
+use App\Services\Notification\TelegramService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

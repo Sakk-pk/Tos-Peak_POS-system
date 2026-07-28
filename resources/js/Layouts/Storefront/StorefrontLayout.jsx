@@ -12,11 +12,12 @@ import ProfileDrawer from './components/ProfileDrawer';
 export default function StorefrontLayout({ children, title = 'TOS-PEAK' }) {
     const { auth, flash, categories = [] } = usePage().props;
     const user = auth?.user;
-    const role = user?.role ?? null;
-
-    // Only Admin/Manager/Staff get a "Go to Dashboard" button
-    const isStaff = role && ['Admin', 'Manager', 'Staff'].includes(role);
-    const staffDashboardUrl = role === 'Staff' ? '/point-of-sale' : '/dashboard';
+    const can = auth?.can ?? {};
+    // Switch-to-Dashboard button is Admin-only.
+    // role_names is a lean string[] shared by HandleInertiaRequests.
+    // This is a UI-only check — authorization is still enforced by route middleware.
+    const isAdmin = Boolean(user?.is_team_member || user?.role_names?.includes('Admin') || user?.role_names?.includes('Manager'));
+    const staffDashboardUrl = '/dashboard';
 
     const [showUserDrawer, setShowUserDrawer] = useState(false);
 
@@ -40,7 +41,7 @@ export default function StorefrontLayout({ children, title = 'TOS-PEAK' }) {
                 user={user}
                 activeCategory={activeCategory}
                 categories={categories}
-                isStaff={isStaff}
+                isAdmin={isAdmin}
                 staffDashboardUrl={staffDashboardUrl}
                 setShowUserDrawer={setShowUserDrawer}
             />

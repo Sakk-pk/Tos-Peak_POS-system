@@ -1,6 +1,7 @@
 import Modal from '@/Components/Modal';
 import { Check, Palette, X } from 'lucide-react';
 import { useEffect } from 'react';
+import { getAccurateColorHex } from '@/Utils/colorHelper';
 
 const FIXED_COLORS = [
     { name: 'Black', value: '#111111' },
@@ -39,16 +40,26 @@ export default function ColorFormModal({
         }
     }, [errors, show]);
     const isEdit = mode === 'edit';
-    const selectedValue = data.value || FIXED_COLORS[0].value;
+    const selectedValue = data.value || getAccurateColorHex(data.name, '') || FIXED_COLORS[0].value;
     const colorInputValue = /^#[0-9A-Fa-f]{6}$/.test(selectedValue)
         ? selectedValue
         : FIXED_COLORS[0].value;
 
     const handleFixedColor = (color) => {
-        setData('value', color.value);
-        if (!data.name.trim()) {
-            setData('name', color.name);
-        }
+        setData((prev) => ({
+            ...prev,
+            name: color.name,
+            value: color.value,
+        }));
+    };
+
+    const handleNameChange = (val) => {
+        const accurate = getAccurateColorHex(val, '');
+        setData((prev) => ({
+            ...prev,
+            name: val,
+            value: accurate || prev.value,
+        }));
     };
 
     return (
@@ -83,7 +94,7 @@ export default function ColorFormModal({
                             id="color-name"
                             type="text"
                             value={data.name}
-                            onChange={(event) => setData('name', event.target.value)}
+                            onChange={(event) => handleNameChange(event.target.value)}
                             placeholder="e.g. Midnight Black"
                             className={`h-11 w-full rounded-xl border bg-white px-4 text-sm font-medium text-black outline-none transition-all duration-200 placeholder:text-gray-400 focus:ring-4 ${
                                 errors.name

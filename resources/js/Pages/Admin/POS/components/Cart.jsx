@@ -156,13 +156,15 @@ export default function Cart({
                         </button>
                     )}
 
-                    <button
-                        type="button"
-                        onClick={onCloseDrawer}
-                        className="w-full flex h-11 items-center justify-center bg-white border border-black/10 hover:border-black text-gray-700 hover:text-black rounded-xl text-xs font-black uppercase tracking-wider transition active:scale-[0.98]"
-                    >
-                        Continue Shopping
-                    </button>
+                    {isStorefront && onCloseDrawer && (
+                        <button
+                            type="button"
+                            onClick={onCloseDrawer}
+                            className="w-full flex h-11 items-center justify-center bg-white border border-black/10 hover:border-black text-gray-700 hover:text-black rounded-xl text-xs font-black uppercase tracking-wider transition active:scale-[0.98]"
+                        >
+                            Continue Shopping
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

@@ -111,7 +111,7 @@ export default function RoleFormPage({ role, permissions = [] }) {
                     </div>
                     <h2 className="mt-5 text-xl font-black font-display uppercase tracking-wider">Role profile</h2>
                     <p className="mt-2 text-xs leading-6 text-gray-400 font-semibold">
-                        Each permission toggles full access to that module. "Manage" means CRUD, "View" means read-only.
+                        Each permission toggles full access to that module — a role can do anything within the modules it has been granted.
                     </p>
 
                     <div className="mt-6 space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -199,7 +199,7 @@ export default function RoleFormPage({ role, permissions = [] }) {
                                             <div className="flex-1">
                                                 <p className="text-sm font-bold text-gray-900">{perm.label ?? perm.name}</p>
                                                 <p className="text-[11px] text-gray-400 font-semibold">
-                                                    {perm.type === 'manage' ? '⚡ Full CRUD access (Manage)' : '👁 Read-only access (View)'}
+                                                    🔓 Full module access
                                                 </p>
                                             </div>
                                             <Toggle

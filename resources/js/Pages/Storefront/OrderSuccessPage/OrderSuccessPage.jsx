@@ -80,7 +80,7 @@ export default function OrderSuccessPage() {
           </Link>
 
           <Link
-            href={route('customer.dashboard', { tab: 'orders' })}
+            href={route('my-orders.index')}
             className="flex h-11 items-center justify-center gap-2 bg-white border border-black/10 hover:border-black text-neutral-700 hover:text-black rounded-xl text-xs font-black uppercase tracking-wider px-6 transition duration-300 active:scale-95 no-underline hover:no-underline"
           >
             <span>View Order History</span>

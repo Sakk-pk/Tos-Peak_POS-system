@@ -4,6 +4,8 @@ import { Head, useForm, router, Link } from '@inertiajs/react';
 import { ArrowLeft, Plus, Trash2, Edit, Eye, ShieldCheck, AlertTriangle, Boxes, Tag, Package } from 'lucide-react';
 import ProductFormModal from './components/ProductFormModal';
 import ProductDetailsModal from './components/ProductDetailsModal';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
+import { getAccurateColorHex } from '@/Utils/colorHelper';
 
 function formatPrice(value) {
     return new Intl.NumberFormat('en-US', {
@@ -157,18 +159,27 @@ export default function ProductDetailPage({
         setShowAddModal(true);
     };
 
+    const [deleteModalState, setDeleteModalState] = useState({ show: false, variant: null });
+
     const handleDeleteProduct = (v) => {
-        if (confirm(`Are you sure you want to delete this variant (${v.color?.name ?? 'N/A'} - Size ${v.size?.name ?? 'N/A'})?`)) {
-            router.delete(route('products.destroy', v.id), {
-                preserveScroll: true,
-                onSuccess: () => {
-                    // If we deleted the active variant itself and no variants remain, redirect back to index
-                    if (variants.length <= 1) {
-                        router.visit(route('products.index'));
-                    }
+        setDeleteModalState({
+            show: true,
+            variant: v,
+        });
+    };
+
+    const confirmDeleteVariant = () => {
+        if (!deleteModalState.variant?.id) return;
+        const v = deleteModalState.variant;
+        router.delete(route('products.destroy', v.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                setDeleteModalState({ show: false, variant: null });
+                if (variants.length <= 1) {
+                    router.visit(route('products.index'));
                 }
-            });
-        }
+            }
+        });
     };
 
     const closeAddModal = () => {
@@ -312,12 +323,10 @@ export default function ProductDetailPage({
                                 {/* Header for Color Group */}
                                 <div className="flex items-center justify-between bg-gray-50/50 px-5 py-3 border-b border-black/5">
                                     <div className="flex items-center gap-2">
-                                        {group.colorHex && (
-                                            <div
-                                                className="h-4 w-4 rounded-full border border-black/15 shadow-sm"
-                                                style={{ backgroundColor: group.colorHex }}
-                                            />
-                                        )}
+                                        <div
+                                            className="h-4 w-4 rounded-full border border-black/15 shadow-sm"
+                                            style={{ backgroundColor: getAccurateColorHex(group.colorName, group.colorHex) }}
+                                        />
                                         <span className="text-xs font-black font-mono text-gray-800 uppercase tracking-wider">
                                             {group.colorName}
                                         </span>
@@ -429,6 +438,16 @@ export default function ProductDetailPage({
                 show={showViewModal}
                 onClose={closeViewModal}
                 productId={viewProductId}
+            />
+
+            <ConfirmModal
+                show={deleteModalState.show}
+                onClose={() => setDeleteModalState({ show: false, variant: null })}
+                onConfirm={confirmDeleteVariant}
+                title="Delete Variant"
+                message={`Are you sure you want to delete this variant (${deleteModalState.variant?.color?.name ?? 'N/A'} - Size ${deleteModalState.variant?.size?.name ?? 'N/A'})? This action cannot be undone.`}
+                confirmText="Delete Variant"
+                variant="danger"
             />
         </AdminLayout>
     );

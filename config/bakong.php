@@ -28,7 +28,7 @@ return [
     'terminal_label' => env('BAKONG_TERMINAL_LABEL', 'POS-01'),
 
     // Bakong Open API token (JWT) — required for payment status verification
-    'api_token' => env('BAKONG_SECRET_KEY', ''),
+    'api_token' => env('BAKONG_API_TOKEN', env('BAKONG_SECRET_KEY', '')),
 
     // Use test/SIT API endpoint when true
     'is_test' => filter_var(env('BAKONG_IS_TEST', false), FILTER_VALIDATE_BOOLEAN),

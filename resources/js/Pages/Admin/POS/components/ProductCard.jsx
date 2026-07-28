@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Plus, Heart, ShoppingBag } from 'lucide-react';
 import { Link, usePage, router } from '@inertiajs/react';
 import LoginModal from '@/Components/LoginModal';
+import { cartService } from '@/Services/cartService';
+import axios from 'axios';
 
 export default function ProductCard({
     product,
@@ -11,38 +13,20 @@ export default function ProductCard({
 }) {
     const { auth, wishlist_ids = [] } = usePage().props;
     const isLoggedIn = !!auth?.user;
-    const isCustomer = isLoggedIn && (!auth.user.role || auth.user.role === 'Customer');
+    const isCustomer = isLoggedIn && !auth.user.is_team_member;
 
     // Modal state
     const [loginModal, setLoginModal] = useState({ open: false, message: '' });
 
     const wishlistKey = auth?.user?.id ? `wishlist_items_${auth.user.id}` : 'wishlist_items';
 
-    // Wishlist state — check localStorage or fallback to props
-    const [isWishlisted, setIsWishlisted] = useState(() => {
-        if (!isLoggedIn) return false;
-        try {
-            const currentWishlist = JSON.parse(localStorage.getItem(wishlistKey)) || [];
-            return currentWishlist.some(item => item.id === product.id);
-        } catch {
-            return wishlist_ids.includes(product.id);
-        }
-    });
+    // Wishlist state — driven by database via wishlist_ids prop
+    const [isWishlisted, setIsWishlisted] = useState(() => isLoggedIn && wishlist_ids.includes(product.id));
     const [wishlistLoading, setWishlistLoading] = useState(false);
 
     useEffect(() => {
-        if (!isLoggedIn) {
-            setIsWishlisted(false);
-            return;
-        }
-        try {
-            const currentWishlist = JSON.parse(localStorage.getItem(wishlistKey)) || [];
-            const exists = currentWishlist.some(item => item.id === product.id);
-            setIsWishlisted(exists || wishlist_ids.includes(product.id));
-        } catch {
-            setIsWishlisted(wishlist_ids.includes(product.id));
-        }
-    }, [wishlist_ids, product.id, isLoggedIn, wishlistKey]);
+        setIsWishlisted(isLoggedIn && wishlist_ids.includes(product.id));
+    }, [wishlist_ids, product.id, isLoggedIn]);
 
     const imageSrc = product.image
         ? (product.image.startsWith('http') || product.image.startsWith('/'))
@@ -69,125 +53,52 @@ export default function ProductCard({
         setWishlistLoading(true);
 
         if (isLoggedIn) {
-            fetch(route('wishlist.toggle'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                },
-                body: JSON.stringify({ product_id: product.id })
-            })
-            .then(res => res.json())
-            .then(data => {
-                const currentWishlist = JSON.parse(localStorage.getItem(wishlistKey)) || [];
-                const exists = currentWishlist.some(item => item.id === product.id);
-                let newWishlist;
-                if (data.wishlisted) {
-                    setIsWishlisted(true);
-                    if (!exists) {
-                        newWishlist = [...currentWishlist, {
-                            id: product.id,
-                            name: product.name,
-                            price: product.price,
-                            image: product.image,
-                            brand: product.brand || { name: 'Nike' },
-                            category: product.category || 'Running',
-                            stock: product.stock !== undefined ? product.stock : 10,
-                            rating: 4.5,
-                            colors: ['#000000', '#D1D5DB', '#EF4444', '#3B82F6'],
-                            sizes: ['8', '9', '10', '11']
-                        }];
-                        localStorage.setItem(wishlistKey, JSON.stringify(newWishlist));
+            axios.post(route('wishlist.toggle'), { product_id: product.id })
+            .then(res => {
+                const data = res.data;
+                setIsWishlisted(data.wishlisted);
+                window.dispatchEvent(new CustomEvent('toast', {
+                    detail: { 
+                        message: data.wishlisted ? `Added "${product.name}" to Wishlist.` : `Removed "${product.name}" from Wishlist.`, 
+                        type: data.wishlisted ? 'success' : 'info' 
                     }
-                    window.dispatchEvent(new CustomEvent('toast', {
-                        detail: { message: `Added "${product.name}" to Wishlist.`, type: 'success' }
-                    }));
-                } else {
-                    setIsWishlisted(false);
-                    newWishlist = currentWishlist.filter(item => item.id !== product.id);
-                    localStorage.setItem(wishlistKey, JSON.stringify(newWishlist));
-                    window.dispatchEvent(new CustomEvent('toast', {
-                        detail: { message: `Removed "${product.name}" from Wishlist.`, type: 'info' }
-                    }));
-                }
-                window.dispatchEvent(new Event('storage'));
-                
-                // Reload Inertia props to sync wishlist count in header and other components!
-                router.reload();
+                }));
+                router.reload({ only: ['wishlist_ids'] });
             })
-            .catch(() => {
-                // local fallback
-                const currentWishlist = JSON.parse(localStorage.getItem(wishlistKey)) || [];
-                const exists = currentWishlist.some(item => item.id === product.id);
-                let newWishlist;
-                if (exists) {
-                    newWishlist = currentWishlist.filter(item => item.id !== product.id);
-                    setIsWishlisted(false);
-                } else {
-                    newWishlist = [...currentWishlist, product];
-                    setIsWishlisted(true);
-                }
-                localStorage.setItem(wishlistKey, JSON.stringify(newWishlist));
-                window.dispatchEvent(new Event('storage'));
-            })
+            .catch(() => {})
             .finally(() => {
                 setWishlistLoading(false);
             });
         } else {
             setLoginModal({
                 open: true,
-                message: 'Please sign in to save products to your boutique favorites.'
+                message: 'Please sign in to save products to your favorites.'
             });
             setWishlistLoading(false);
         }
     };
 
     // ── Handle "Quick Add" to Cart ───────────────────
-    const handleQuickAdd = (e) => {
+    const handleQuickAdd = async (e) => {
         e.preventDefault();
         e.stopPropagation();
 
-        if (isStorefront) {
-            try {
-                const currentCart = JSON.parse(localStorage.getItem('pos_cart')) || [];
-                const defaultSize = product.size || 'Unisex';
-                const defaultColor = product.color || 'Standard';
-                
-                const existingIndex = currentCart.findIndex(
-                    item => item.id === product.id && 
-                            item.size === defaultSize && 
-                            item.color === defaultColor
-                );
+        if (product.stock <= 0) return;
 
-                let updatedCart;
-                if (existingIndex > -1) {
-                    updatedCart = [...currentCart];
-                    updatedCart[existingIndex].quantity += 1;
-                } else {
-                    updatedCart = [
-                        ...currentCart,
-                        {
-                            id: product.id,
-                            name: product.name,
-                            price: product.price,
-                            image: product.image,
-                            size: defaultSize,
-                            color: defaultColor,
-                            quantity: 1,
-                            stock: product.stock !== undefined ? product.stock : 10,
-                            category: product.category || '',
-                            brand: product.brand || 'TOS-PEAK',
-                        }
-                    ];
-                }
-                localStorage.setItem('pos_cart', JSON.stringify(updatedCart));
-                window.dispatchEvent(new Event('storage'));
-                window.dispatchEvent(new CustomEvent('toast', {
-                    detail: { message: `Added "${product.name}" to Bag.`, type: 'success' }
-                }));
-            } catch (_) {
-                // fallback
+        if (isStorefront) {
+            const defaultSize = product.size?.name || (typeof product.size === 'string' ? product.size : '40');
+            const defaultColor = product.color?.name || (typeof product.color === 'string' ? product.color : 'Black');
+
+            if (isLoggedIn) {
+                await cartService.addToCartServer(product, 1, defaultSize, defaultColor);
+            } else {
+                cartService.addToCart(product, 1, defaultSize, defaultColor);
             }
+
+            window.dispatchEvent(new Event('storage'));
+            window.dispatchEvent(new CustomEvent('toast', {
+                detail: { message: `Added "${product.name}" to Bag.`, type: 'success' }
+            }));
             return;
         }
 
@@ -205,12 +116,12 @@ export default function ProductCard({
             >
                 <div>
                     {/* ── Image & Overlay Actions ── */}
-                    <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-none bg-[#EAEAE9] transition duration-300 p-4">
+                    <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-none bg-[#f5f5f5] transition duration-300">
                         <img
                             src={imageSrc}
                             alt={product.name}
                             loading="lazy"
-                            className="h-full w-full object-contain mix-blend-multiply transition-transform duration-500 scale-[0.82] group-hover:scale-[0.88] group-hover:rotate-2"
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                             onError={(e) => {
                                 e.currentTarget.src = '/images/placeholder-product.png';
                             }}

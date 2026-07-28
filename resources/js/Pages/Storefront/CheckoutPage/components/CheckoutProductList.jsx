@@ -3,7 +3,7 @@ import React from 'react';
 export default function CheckoutProductList({ cartItems, formatPrice }) {
   return (
     <div className="pt-2 max-h-[450px] overflow-y-auto pr-1 scrollbar-none space-y-4">
-      {cartItems.map((item) => {
+      {cartItems.map((item, index) => {
         const img = item.image
           ? (item.image.startsWith('http') || item.image.startsWith('/'))
             ? item.image
@@ -11,7 +11,7 @@ export default function CheckoutProductList({ cartItems, formatPrice }) {
           : '/images/placeholder-product.png';
 
         return (
-          <div key={item.id} className="flex border border-neutral-200 bg-white rounded-none overflow-hidden h-36">
+          <div key={`${item.id}-${item.size || 'std'}-${item.color || 'std'}-${index}`} className="flex border border-neutral-200 bg-white rounded-none overflow-hidden h-36">
             {/* Product Image Section */}
             <div className="w-1/4 bg-[#F6F6F6] shrink-0 flex items-center justify-center p-2.5 border-r border-neutral-100">
               <img 

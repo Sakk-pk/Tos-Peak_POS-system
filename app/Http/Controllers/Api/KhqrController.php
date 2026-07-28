@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Repositories\PaymentRepositoryInterface;
-use App\Services\KhqrService;
-use App\Services\PaymentService;
+use App\Models\Payment\Payment;
+use App\Models\Order\Order;
+use App\Models\User\User;
+use App\Services\Payment\KhqrService;
+use App\Services\Payment\PaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -15,16 +18,13 @@ class KhqrController extends Controller
 {
     protected KhqrService $khqrService;
     protected PaymentService $paymentService;
-    protected PaymentRepositoryInterface $paymentRepo;
 
     public function __construct(
         KhqrService $khqrService,
         PaymentService $paymentService,
-        PaymentRepositoryInterface $paymentRepo,
     ) {
         $this->khqrService    = $khqrService;
         $this->paymentService = $paymentService;
-        $this->paymentRepo    = $paymentRepo;
     }
 
     /**
@@ -53,7 +53,7 @@ class KhqrController extends Controller
             $khqrData = $this->khqrService->generateDynamicKhqr($amount, $currency, $billNumber);
 
             // Record a pending payment row so status polling can find it
-            $payment = $this->paymentRepo->create([
+            $payment = Payment::create([
                 'order_id'       => $orderId,
                 'amount'         => $amount,
                 'currency'       => $currency,
@@ -86,9 +86,9 @@ class KhqrController extends Controller
         $status = $this->paymentService->checkPaymentStatus($md5);
 
         $order = null;
-        $payment = $this->paymentRepo->findByMd5($md5);
+        $payment = Payment::where('khqr_md5', $md5)->first();
         if ($payment && $payment->order_id) {
-            $order = \App\Models\Order::with('items')->find($payment->order_id);
+            $order = Order::with('items')->find($payment->order_id);
         }
 
         return response()->json([
@@ -156,7 +156,7 @@ class KhqrController extends Controller
             ], 400);
         }
 
-        $payment = $this->paymentRepo->findByMd5($md5);
+        $payment = Payment::where('khqr_md5', $md5)->first();
         if (!$payment) {
             return response()->json([
                 'success' => false,
@@ -192,7 +192,7 @@ class KhqrController extends Controller
     }
 
     /**
-     * Verify payment status directly with Bakong API (Admin/Manager manually triggered status verify).
+     * Verify payment status directly with Bakong API for authorized order managers.
      * POST /api/khqr/manual-confirm
      */
     public function manualConfirm(Request $request): JsonResponse
@@ -207,19 +207,27 @@ class KhqrController extends Controller
 
         // If supervisor credentials are provided, validate them and override auth check
         if ($request->filled('supervisor_email') && $request->filled('supervisor_password')) {
-            $supervisor = \App\Models\User::where('email', $request->supervisor_email)->first();
-            if ($supervisor && \Illuminate\Support\Facades\Hash::check($request->supervisor_password, $supervisor->password)) {
-                if ($supervisor->hasAnyRole(['Admin', 'Manager']) && $supervisor->status !== 'Inactive') {
+            $supervisor = User::where('email', $request->supervisor_email)->first();
+            if ($supervisor && Hash::check($request->supervisor_password, $supervisor->password)) {
+                if ($supervisor->can('orders') && $supervisor->status !== 'Inactive') {
                     $user = $supervisor;
                 }
             }
         }
 
-        if (!$user || !$user->hasAnyRole(['Admin', 'Manager'])) {
+        // Allow team members with orders, pos permission, or POS cashier roles
+        $hasPermission = $user && (
+            $user->can('orders') ||
+            $user->can('pos') ||
+            $user->is_team_member ||
+            in_array($user->role ?? '', ['Admin', 'Manager', 'Cashier', 'Supervisor'])
+        );
+
+        if (!$user || !$hasPermission) {
             return response()->json([
                 'success' => false,
                 'requires_auth' => true,
-                'message' => 'Unauthorized: Supervisor authorization required (Admin or Manager).'
+                'message' => 'Unauthorized: Orders or POS permission required.'
             ], 403);
         }
 
@@ -237,7 +245,7 @@ class KhqrController extends Controller
 
         // Fallback: If Bakong API verification did not succeed (offline, test, or local environment),
         // allow the authorized supervisor to force the payment status to 'paid' as a manual override.
-        $payment = $this->paymentRepo->findByMd5($validated['md5']);
+        $payment = Payment::where('khqr_md5', $validated['md5'])->first();
         if ($payment) {
             Log::info("Supervisor manual payment override force-confirming MD5: {$validated['md5']} by User ID: {$user->id}");
             $txnId = 'FORCE_CONFIRMED_' . strtoupper(uniqid());

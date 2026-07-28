@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Support\RedirectsAfterLogin;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,8 @@ use Laragear\TwoFactor\Facades\Auth2FA;
 
 class AuthenticatedSessionController extends Controller
 {
+    use RedirectsAfterLogin;
+
     /**
      * Display the login view.
      */
@@ -55,19 +58,7 @@ class AuthenticatedSessionController extends Controller
             \Illuminate\Support\Facades\RateLimiter::clear($request->throttleKey());
             $request->session()->regenerate();
 
-            $roleName = $user->roles->first()?->name ?? '';
-
-            // Role-based post-login redirect
-            if ($roleName === 'Admin') {
-                return redirect()->intended('/dashboard');
-            } elseif ($roleName === 'Manager') {
-                return redirect()->intended('/dashboard');
-            } elseif ($roleName === 'Staff') {
-                return redirect()->intended('/point-of-sale');
-            }
-
-            $fallback = $request->input('redirect_to') ?: '/';
-            return redirect()->intended($fallback);
+            return redirect()->intended($this->loginRedirectUrl($user));
         }
 
         \Illuminate\Support\Facades\RateLimiter::hit($request->throttleKey());
@@ -82,6 +73,10 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        if (Auth::check()) {
+            \App\Models\Order\CartItem::where('user_id', Auth::id())->delete();
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
@@ -91,4 +86,3 @@ class AuthenticatedSessionController extends Controller
         return redirect('/');
     }
 }
-

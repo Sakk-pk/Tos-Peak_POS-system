@@ -13,19 +13,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Bakong KHQR — repository interface bindings
-        $this->app->bind(
-            \App\Repositories\PaymentRepositoryInterface::class,
-            \App\Repositories\PaymentRepository::class
-        );
-        $this->app->bind(
-            \App\Repositories\OrderRepositoryInterface::class,
-            \App\Repositories\OrderRepository::class
-        );
-        $this->app->bind(
-            \App\Repositories\ProductRepositoryInterface::class,
-            \App\Repositories\ProductRepository::class
-        );
+        //
     }
 
     /**
@@ -35,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
         
-        \App\Models\Product::observe(\App\Observers\ProductObserver::class);
+        \App\Models\Product\Product::observe(\App\Observers\ProductObserver::class);
 
         // Force HTTPS URL scheme in production
         if (config('app.env') === 'production' || getenv('APP_ENV') === 'production') {
@@ -73,7 +61,7 @@ class AppServiceProvider extends ServiceProvider
                 \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
             }
             if (\Illuminate\Support\Facades\Schema::hasTable('products')) {
-                if (\App\Models\Product::count() === 0) {
+                if (\App\Models\Product\Product::count() === 0) {
                     \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
                 } else {
                     // Update old local image paths to beautiful Unsplash public sneaker images
@@ -84,7 +72,7 @@ class AppServiceProvider extends ServiceProvider
                         4 => 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=600&auto=format&fit=crop',
                     ];
                     foreach ($unsplashImages as $id => $url) {
-                        $product = \App\Models\Product::find($id);
+                        $product = \App\Models\Product\Product::find($id);
                         if ($product && !str_starts_with($product->image, 'http')) {
                             $product->update(['image' => $url]);
                         }

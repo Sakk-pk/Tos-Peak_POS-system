@@ -3,12 +3,9 @@
 namespace App\Observers;
 
 use App\Jobs\SendTelegramNotification;
-use App\Models\Product;
-use App\Models\Setting;
-use App\Models\TelegramNotificationLog;
-use App\Notifications\LowStockNotification;
-use App\Models\User;
-use Illuminate\Support\Facades\Notification;
+use App\Models\Product\Product;
+use App\Models\Notification\Setting;
+use App\Models\Notification\TelegramNotificationLog;
 
 class ProductObserver
 {
@@ -49,11 +46,6 @@ class ProductObserver
                         $product->last_low_stock_alert_at = now();
                         $product->saveQuietly();
 
-                        $roleNames = \DB::table('roles')->whereIn('name', ['Admin', 'Super Admin'])->pluck('name')->toArray();
-                        $admins = !empty($roleNames) ? User::role($roleNames)->get() : collect();
-                        if ($admins->count() > 0 && class_exists(LowStockNotification::class)) {
-                            Notification::send($admins, new LowStockNotification($product));
-                        }
                     } elseif ($newStock <= $threshold && $newStock > 0 && is_null($product->last_low_stock_alert_at)) {
                         // Create log for Low Stock
                         $log = TelegramNotificationLog::create([
@@ -68,12 +60,6 @@ class ProductObserver
                         $product->last_low_stock_alert_at = now();
                         $product->saveQuietly();
                         
-                        // Send DB Notification to Admins
-                        $roleNames = \DB::table('roles')->whereIn('name', ['Admin', 'Super Admin'])->pluck('name')->toArray();
-                        $admins = !empty($roleNames) ? User::role($roleNames)->get() : collect();
-                        if ($admins->count() > 0 && class_exists(LowStockNotification::class)) {
-                            Notification::send($admins, new LowStockNotification($product));
-                        }
                     }
                 }
             }

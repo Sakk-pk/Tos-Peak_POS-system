@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\CatalogAttribute;
-use App\Models\Category;
+use App\Models\Product\Product\CatalogAttribute;
+use App\Models\Product\Product\Category;
 use Illuminate\Database\Seeder;
 
 class CatalogAttributeSeeder extends Seeder

@@ -31,3 +31,32 @@ Route::middleware('auth:sanctum,web')->group(function () {
     Route::get('/khqr/check/{md5}',      [KhqrController::class, 'checkStatus'])->name('khqr.check');
     Route::post('/khqr/manual-confirm',  [KhqrController::class, 'manualConfirm'])->name('khqr.manual-confirm');
 });
+
+// ── Telegram Bot API Test Route ────────────────────────────────────────────────
+Route::post('/telegram/test', function (Request $request) {
+    $validated = $request->validate([
+        'telegram_bot_token' => 'required|string',
+        'telegram_chat_id' => 'required|string',
+    ]);
+
+    \App\Models\Notification\Setting::updateOrCreate(['key' => 'telegram_bot_token'], ['value' => $validated['telegram_bot_token']]);
+    \App\Models\Notification\Setting::updateOrCreate(['key' => 'telegram_chat_id'], ['value' => $validated['telegram_chat_id']]);
+
+    $log = \App\Models\Notification\TelegramNotificationLog::create([
+        'type' => 'test',
+        'message' => "🧪 <b>TOS-PEAK Alert System Test</b>\nIf you are seeing this message, your Telegram Bot connection is successful!",
+        'status' => 'pending'
+    ]);
+
+    \App\Jobs\SendTelegramNotification::dispatch($log, 'test');
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Telegram test notification dispatched successfully.',
+        'data' => [
+            'log_id' => $log->id,
+            'chat_id' => $validated['telegram_chat_id'],
+            'status' => 'dispatched'
+        ]
+    ]);
+});

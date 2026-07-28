@@ -53,7 +53,7 @@ const Sidebar = React.forwardRef((props, ref) => {
   return (
     <div
       ref={ref}
-      className={`flex flex-col h-screen fixed left-0 top-0 bottom-0 z-20 shrink-0 bg-gray-900 text-white transition-all duration-200 ${
+      className={`flex flex-col h-screen fixed left-0 top-0 bottom-0 z-20 shrink-0 bg-[#111F36] text-white border-t-0 border-r border-white/10 transition-all duration-200 ease-in-out ${
         open ? "w-64 items-start" : "w-20 items-center"
       } ${className}`}
       {...rest}
@@ -72,7 +72,7 @@ const SidebarTrigger = React.forwardRef((props, ref) => {
     <button
       ref={ref}
       onClick={toggleSidebar}
-      className={`p-2 hover:bg-gray-700 rounded-none transition ${className}`}
+      className={`p-2 hover:bg-black/10 rounded-none transition duration-200 ${className}`}
       {...rest}
     >
       <PanelLeft className="w-5 h-5" />
@@ -88,7 +88,7 @@ const SidebarInset = React.forwardRef((props, ref) => {
   return (
     <main 
       ref={ref} 
-      className={`flex-1 flex flex-col h-screen overflow-hidden bg-white transition-all duration-200 ${
+      className={`flex-1 flex flex-col h-screen overflow-hidden bg-white transition-all duration-200 ease-in-out ${
         open ? "pl-64" : "pl-20"
       } ${className}`} 
       {...rest}
@@ -103,7 +103,7 @@ const SidebarHeader = React.forwardRef((props, ref) => {
   const { className = "", children, ...rest } = props;
   const { open } = useSidebar();
   return (
-    <div ref={ref} className={`${open ? 'p-4' : 'p-2'} border-b border-gray-700 ${className}`} {...rest}>
+    <div ref={ref} className={`${open ? 'p-4 pb-2' : 'p-2'} ${className}`} {...rest}>
       {children}
     </div>
   );
@@ -139,7 +139,7 @@ SidebarGroup.displayName = "SidebarGroup";
 const SidebarGroupLabel = React.forwardRef((props, ref) => {
   const { className = "", children, ...rest } = props;
   return (
-    <h3 ref={ref} className={`text-xs font-semibold text-gray-400 px-2 py-1 uppercase tracking-wide ${className}`} {...rest}>
+    <h3 ref={ref} className={`text-[11px] font-extrabold text-blue-200/70 px-3 py-1.5 uppercase tracking-wider ${className}`} {...rest}>
       {children}
     </h3>
   );
@@ -191,8 +191,12 @@ const SidebarMenuButton = React.forwardRef((props, ref) => {
   const { asChild, isActive, className = "", children, ...rest } = props;
   const { open } = useSidebar();
 
-  const openClasses = `flex items-center gap-3 w-full px-3.5 py-2.5 rounded-none text-[12px] font-bold uppercase tracking-wider transition-all duration-200 hover:bg-neutral-800/80 hover:text-white ${isActive ? "bg-neutral-800 text-white font-black" : "text-gray-400"} ${className}`;
-  const closedClasses = `flex items-center justify-center w-11 h-11 rounded-none transition-all duration-200 hover:bg-neutral-800/80 hover:text-white ${isActive ? "bg-neutral-800 text-white" : "text-gray-400"} ${className}`;
+  const openClasses = `group flex items-center gap-3 w-full px-3.5 py-2.5 rounded-none text-[12px] font-bold uppercase tracking-wider transition-all duration-200 ease-in-out hover:bg-white/10 hover:text-white ${
+    isActive ? "bg-white/15 text-white font-black shadow-sm" : "text-blue-100/75"
+  } ${className}`;
+  const closedClasses = `group flex items-center justify-center w-11 h-11 rounded-none transition-all duration-200 ease-in-out hover:bg-white/10 hover:text-white ${
+    isActive ? "bg-white/15 text-white" : "text-blue-100/75"
+  } ${className}`;
 
   if (asChild && children) {
     return React.cloneElement(children, {

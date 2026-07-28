@@ -22,6 +22,11 @@ class CheckPermission
         // Get the currently authenticated user
         $user = $request->user();
 
+        if ($user) {
+            app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+            $user->load('roles.permissions', 'permissions');
+        }
+
         if (! $user) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Unauthenticated.'], 401);
@@ -29,18 +34,12 @@ class CheckPermission
             return redirect()->guest(route('login'));
         }
 
-        // Check if the user has the specified permission.
+        // Module permissions are the sole authorization boundary for admin routes.
         try {
-            if ($user->hasRole('Admin')) {
-                return $next($request);
-            }
             if (! $user->hasPermissionTo($permission)) {
                 abort(403, 'You do not have the required permission.');
             }
         } catch (PermissionDoesNotExist) {
-            if ($user->hasRole('Admin')) {
-                return $next($request);
-            }
             abort(403, 'You do not have the required permission.');
         }
 

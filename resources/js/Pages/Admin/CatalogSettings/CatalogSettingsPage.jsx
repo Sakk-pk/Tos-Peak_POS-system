@@ -2,20 +2,52 @@ import AdminLayout from '@/Layouts/Admin/AdminLayout';
 import { Head, router, useForm, useRemember } from '@inertiajs/react';
 import CatalogTable from '@/Pages/Admin/CatalogSettings/components/CatalogTable';
 import { useMemo, useState } from 'react';
-import CategoriesList from './components/CategoriesList';
-import SubCategoriesList from './components/SubCategoriesList';
-import ColorsList from './components/ColorsList';
-import BrandsList from './components/BrandsList';
-import SizesList from './components/SizesList';
 import ColorFormModal from './components/ColorFormModal';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
 
 const TABS = ['Categories', 'Sub-Categories', 'Colors', 'Brands', 'Sizes'];
-const TAB_COMPONENTS = {
-    Categories: CategoriesList,
-    'Sub-Categories': SubCategoriesList,
-    Colors: ColorsList,
-    Brands: BrandsList,
-    Sizes: SizesList,
+
+const TAB_CONFIGS = {
+    Categories: {
+        key: 'categories',
+        backendTab: 'categories',
+        title: 'Categories',
+        description: 'Manage top-level categories used by products.',
+        placeholder: 'Category name...',
+        hasParentSelector: false,
+    },
+    'Sub-Categories': {
+        key: 'subCategories',
+        backendTab: 'sub_categories',
+        title: 'Sub-Categories',
+        description: 'Pick a parent category, type a name, and add it to your catalog.',
+        placeholder: 'Sub-category name...',
+        hasParentSelector: true,
+    },
+    Colors: {
+        key: 'colors',
+        backendTab: 'colors',
+        title: 'Colors',
+        description: 'Manage color entries used in the catalog.',
+        placeholder: 'Color name...',
+        hasParentSelector: false,
+    },
+    Brands: {
+        key: 'brands',
+        backendTab: 'brands',
+        title: 'Brands',
+        description: 'Manage manufacturer / brand names.',
+        placeholder: 'Brand name...',
+        hasParentSelector: false,
+    },
+    Sizes: {
+        key: 'sizes',
+        backendTab: 'sizes',
+        title: 'Sizes',
+        description: 'Manage product size labels.',
+        placeholder: 'Size name...',
+        hasParentSelector: false,
+    },
 };
 
 export default function CatalogSettingsPage({ catalogData }) {
@@ -26,9 +58,10 @@ export default function CatalogSettingsPage({ catalogData }) {
     const [colorModalMode, setColorModalMode] = useState('add');
     const [editingColorId, setEditingColorId] = useState(null);
     const [colorSearchTerm, setColorSearchTerm] = useState('');
+    const [deleteModalState, setDeleteModalState] = useState({ show: false, itemId: null, itemName: '' });
 
     const { data, setData, post, patch, processing, errors } = useForm({
-        tab: TAB_COMPONENTS[activeTab]?.tab.backendTab ?? 'categories',
+        tab: TAB_CONFIGS[activeTab]?.backendTab ?? 'categories',
         name: '',
         parent_name: '',
         value: '#111111',
@@ -36,8 +69,7 @@ export default function CatalogSettingsPage({ catalogData }) {
 
     const headWeb = 'Catalog Settings';
     const sortedTabs = useMemo(() => TABS, []);
-    const activeTabComponent = TAB_COMPONENTS[activeTab];
-    const activeConfig = activeTabComponent?.tab ?? TAB_COMPONENTS.Categories.tab;
+    const activeConfig = TAB_CONFIGS[activeTab] ?? TAB_CONFIGS.Categories;
 
     const categories = catalogData?.categories ?? [];
     const subCategories = catalogData?.subCategories ?? [];
@@ -84,7 +116,7 @@ export default function CatalogSettingsPage({ catalogData }) {
         setActiveTab(tab);
         setColorSearchTerm('');
         setEditing({ tab: null, id: null, value: '' });
-        setData('tab', TAB_COMPONENTS[tab].tab.backendTab);
+        setData('tab', TAB_CONFIGS[tab].backendTab);
         setData('name', '');
         setData('value', '#111111');
         if (tab === 'Sub-Categories') {
@@ -172,12 +204,21 @@ export default function CatalogSettingsPage({ catalogData }) {
         }
     };
 
-    const handleDeleteItem = (id) => {
-        if (confirm(`Are you sure you want to delete this catalog item? This action is irreversible.`)) {
-            router.delete(route('catalog-settings.destroy', [activeConfig.backendTab, id]), {
-                preserveScroll: true,
-            });
-        }
+    const handleDeleteItem = (id, item) => {
+        const name = typeof item === 'object' ? item?.name : '';
+        setDeleteModalState({
+            show: true,
+            itemId: id,
+            itemName: name,
+        });
+    };
+
+    const confirmDeleteItem = () => {
+        if (!deleteModalState.itemId) return;
+        router.delete(route('catalog-settings.destroy', [activeConfig.backendTab, deleteModalState.itemId]), {
+            preserveScroll: true,
+            onSuccess: () => setDeleteModalState({ show: false, itemId: null, itemName: '' }),
+        });
     };
 
     const startEdit = (item) => {
@@ -287,6 +328,15 @@ export default function CatalogSettingsPage({ catalogData }) {
                 errors={errors}
                 processing={processing}
                 mode={colorModalMode}
+            />
+            <ConfirmModal
+                show={deleteModalState.show}
+                onClose={() => setDeleteModalState({ show: false, itemId: null, itemName: '' })}
+                onConfirm={confirmDeleteItem}
+                title="Delete Catalog Item"
+                message={`Are you sure you want to delete ${deleteModalState.itemName ? `"${deleteModalState.itemName}"` : 'this catalog item'}? This action cannot be undone and will permanently remove it from your store catalog.`}
+                confirmText="Delete"
+                variant="danger"
             />
         </AdminLayout>
     );

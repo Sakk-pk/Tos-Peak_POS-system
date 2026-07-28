@@ -16,7 +16,11 @@ export default function KhqrPayment({
     amount, 
     cartItems, 
     orderItems, 
-    customerEmail, 
+    customerEmail,
+    customerName,
+    customerPhone,
+    shippingAddress,
+    source,
     onSuccess, 
     onCancel 
 }) {
@@ -34,6 +38,8 @@ export default function KhqrPayment({
     const [supervisorPassword, setSupervisorPassword] = useState('');
     const [supervisorError, setSupervisorError] = useState('');
     const [supervisorVerifying, setSupervisorVerifying] = useState(false);
+
+    const [isVerifyingStatus, setIsVerifyingStatus] = useState(false);
 
     const pollRef    = useRef(null);
     const timerRef   = useRef(null);
@@ -86,11 +92,15 @@ export default function KhqrPayment({
         try {
             // First create the Pending Order (reservations are secured via database pessimistic locking)
             const { data } = await axios.post('/orders', {
-                customer_name: 'Walk-in Customer',
-                customer_email: customerEmail || null,
-                customer_phone: null,
-                payment_method: 'qr',
-                cash_received: parseFloat(finalAmount.toFixed(2)),
+                source:            source || 'storefront',
+                customer_name:     customerName || null,
+                customer_email:    customerEmail || null,
+                customer_phone:    customerPhone || null,
+                shipping_name:     customerName || null,
+                shipping_phone:    customerPhone || null,
+                shipping_address:  shippingAddress || null,
+                payment_method:    'qr',
+                cash_received:     parseFloat(finalAmount.toFixed(2)),
                 items: (finalItems || []).map(item => ({ id: item.id, quantity: item.quantity }))
             }, {
                 headers: {
@@ -184,6 +194,7 @@ export default function KhqrPayment({
     async function triggerManualConfirm() {
         // First try to check without supervisor credentials (if current cashier has Admin/Manager roles)
         setSupervisorError('');
+        setIsVerifyingStatus(true);
         try {
             const { data } = await axios.post('/api/khqr/manual-confirm', { md5: md5 });
             if (data.success) {
@@ -213,6 +224,8 @@ export default function KhqrPayment({
                 setErrorMsg(err.response?.data?.message || 'Payment status verification failed. Please try again.');
                 setPhase('error');
             }
+        } finally {
+            setIsVerifyingStatus(false);
         }
     }
 
@@ -364,29 +377,29 @@ export default function KhqrPayment({
 
     // ── QR Code Display ──────────────────────────────────────────────────────
     return (
-        <div className="flex flex-col items-center gap-4 w-full">
+        <div className="flex flex-col items-center gap-2.5 w-full">
             {/* Bakong-style QR card */}
-            <div className="relative flex flex-col items-center rounded-2xl border border-neutral-100 bg-white p-5 shadow-lg w-full max-w-[340px]">
+            <div className="relative flex flex-col items-center rounded-xl border border-neutral-100 bg-white p-3.5 shadow-md w-full max-w-[290px]">
                 {/* Header */}
-                <div className="flex items-center gap-3 mb-4 w-full border-b border-neutral-100 pb-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-600 shadow-sm shadow-red-600/20">
+                <div className="flex items-center gap-2.5 mb-2.5 w-full border-b border-neutral-100 pb-2">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-600 shadow-sm shadow-red-600/20">
                         <span className="text-white font-black text-xs">B</span>
                     </div>
                     <div className="text-left">
-                        <p className="text-xs font-black text-neutral-950 uppercase tracking-wider leading-none">Bakong KHQR</p>
-                        <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider mt-1.5 leading-none">Scan to Pay</p>
+                        <p className="text-[11px] font-black text-neutral-950 uppercase tracking-wider leading-none">Bakong KHQR</p>
+                        <p className="text-[8px] text-neutral-400 font-bold uppercase tracking-wider mt-1 leading-none">Scan to Pay</p>
                     </div>
-                    <div className="ml-auto flex items-center gap-1 text-[10px] font-black text-amber-600 bg-amber-50 border border-amber-100/50 rounded-lg px-2.5 py-1 select-none">
+                    <div className="ml-auto flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 border border-amber-100/50 rounded-lg px-2 py-0.5 select-none">
                         <Clock className="h-3 w-3" />
                         {formatTime(secondsLeft)}
                     </div>
                 </div>
 
                 {/* QR Code */}
-                <div className="p-4 rounded-2xl border border-neutral-150 bg-white shadow-sm">
+                <div className="p-2.5 rounded-xl border border-neutral-150 bg-white shadow-sm">
                     <QRCodeSVG
                         value={qrString}
-                        size={170}
+                        size={130}
                         level="M"
                         includeMargin={false}
                         bgColor="transparent"
@@ -395,44 +408,35 @@ export default function KhqrPayment({
                 </div>
 
                 {/* Amount */}
-                <div className="mt-4 text-center">
-                    <p className="text-[9.5px] text-neutral-400 font-black uppercase tracking-widest">Amount to Pay</p>
-                    <p className="text-2xl font-extrabold text-neutral-950 tracking-tight mt-1">
-                        ${(finalAmount || 0).toFixed(2)} <span className="text-xs font-extrabold text-neutral-400 uppercase">USD</span>
+                <div className="mt-2 text-center">
+                    <p className="text-[8.5px] text-neutral-400 font-black uppercase tracking-widest">Amount to Pay</p>
+                    <p className="text-xl font-extrabold text-neutral-950 tracking-tight mt-0.5">
+                        ${(finalAmount || 0).toFixed(2)} <span className="text-[10px] font-extrabold text-neutral-400 uppercase">USD</span>
                     </p>
                 </div>
 
                 {/* Polling indicator */}
-                <div className="mt-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                <div className="mt-2 flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-neutral-400">
                     <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                     Waiting for payment…
                 </div>
-
-                {/* Manual Confirm Button */}
-                <button
-                    type="button"
-                    onClick={triggerManualConfirm}
-                    className="mt-4 w-full flex h-11 items-center justify-center bg-black hover:bg-neutral-900 active:scale-[0.98] text-white text-xs font-black uppercase tracking-widest rounded-none transition duration-150 shadow-sm"
-                >
-                    Confirm Payment Manually
-                </button>
             </div>
 
             {/* Bottom Actions */}
-            <div className="flex items-center gap-6 mt-1">
+            <div className="flex items-center gap-5">
                 <button
                     type="button"
                     onClick={handleCancel}
-                    className="text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-black transition underline decoration-1"
+                    className="text-[9px] font-black uppercase tracking-widest text-neutral-400 hover:text-black transition underline decoration-1"
                 >
                     Cancel Order
                 </button>
                 <button
                     type="button"
                     onClick={generateQr}
-                    className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-black transition"
+                    className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-neutral-400 hover:text-black transition"
                 >
-                    <RefreshCw className="h-3.5 w-3.5" />
+                    <RefreshCw className="h-3 w-3" />
                     Refresh QR
                 </button>
             </div>

@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Jobs\SendTelegramNotification;
-use App\Models\Product;
-use App\Models\Setting;
-use App\Models\TelegramNotificationLog;
+use App\Models\Product\Product;
+use App\Models\Notification\Setting;
+use App\Models\Notification\TelegramNotificationLog;
 use Illuminate\Console\Command;
 
 class LowStockSummaryCommand extends Command

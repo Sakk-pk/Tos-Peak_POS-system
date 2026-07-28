@@ -63,15 +63,15 @@
     --chart-4: 0.65 0 0;
     --chart-5: 0.35 0 0;
 
-    /* ── Sidebar — ink chrome ────────────────────────────────────────── */
-    --sidebar:                    var(--brand-ink);       /* deep ink bg     */
-    --sidebar-foreground:         0.85 0 0;               /* off-white text  */
-    --sidebar-primary:            var(--brand-red);       /* active accent   */
-    --sidebar-primary-foreground: 0.99 0 0;
-    --sidebar-accent:             0.22 0 0;
-    --sidebar-accent-foreground:  0.99 0 0;
-    --sidebar-border:             0.22 0 0;
-    --sidebar-ring:               var(--brand-red);
+    /* ── Sidebar — deep dark blue branding ───────────────────────────── */
+    --sidebar:                    #111F36;       /* deep dark blue bg */
+    --sidebar-foreground:         #FFFFFF;       /* crisp white text   */
+    --sidebar-primary:            #F97316;       /* active orange accent */
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent:             #1A2F50;       /* hover/accent color */
+    --sidebar-accent-foreground:  #FFFFFF;
+    --sidebar-border:             rgba(255, 255, 255, 0.12);
+    --sidebar-ring:               #F97316;
 }
 
 /* ── Base layer ──────────────────────────────────────────────────────── */
@@ -132,12 +132,12 @@
 }
 
 .mono-text {
-    font-family: 'DM Mono', ui-monospace, monospace;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-variant-numeric: tabular-nums;
 }
 
 .display-hero {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-weight: 800;
     letter-spacing: -0.03em;
     text-transform: uppercase;
@@ -240,7 +240,7 @@
 
 /* ── Headline ────────────────────────────────────────────────────────────── */
 .hero-headline {
-    font-family: 'Syne', 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: clamp(2.8rem, 7.5vw, 6.2rem);
     font-weight: 900;
     line-height: 0.92;
@@ -448,6 +448,13 @@
     border-radius: 0px !important;
 }
 
+/* Allow subtle rounded corner radius (~8px to 12px) ONLY for summary/statistic cards */
+.admin-dashboard .summary-card,
+.admin-dashboard [data-summary-card],
+.summary-card {
+    border-radius: 0.75rem !important; /* ~12px subtle border radius (rounded-xl) */
+}
+
 .admin-dashboard .shadow-sm,
 .admin-dashboard .shadow,
 .admin-dashboard .shadow-md,
@@ -475,5 +482,37 @@
     border-color: #000000 !important;
     box-shadow: none !important;
     outline: none !important;
+}
+
+/* ── Remove top blue line & pseudo-elements from sidebar & page top ────── */
+#nprogress .bar,
+#nprogress .peg,
+.wrapper::before,
+.wrapper::after,
+.main-sidebar::before,
+.main-sidebar::after,
+.sidebar::before,
+.sidebar::after,
+.brand-link::before,
+.brand-link::after,
+.main-header::before,
+.main-header::after {
+    display: none !important;
+    content: none !important;
+    border-top: none !important;
+    background: none !important;
+}
+
+div[class*="bg-[#111F36]"],
+.main-sidebar,
+.sidebar,
+.brand-link,
+.main-header,
+[data-sidebar] {
+    border-top: none !important;
+    border-top-width: 0px !important;
+    border-top-color: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 

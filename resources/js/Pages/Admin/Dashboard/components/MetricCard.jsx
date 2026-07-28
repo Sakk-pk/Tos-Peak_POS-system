@@ -6,7 +6,7 @@ export default function MetricCard({ icon: Icon, label, value, delta, iconBg, ic
   const isNeedsReview = label === 'Low Stock';
 
   return (
-    <div className="rounded-none border border-black/[0.08] bg-white p-4 transition-colors duration-200 select-none flex items-center justify-between">
+    <div className="summary-card rounded-xl border border-black/[0.08] bg-white p-4 transition-colors duration-200 select-none flex items-center justify-between">
       <div className="flex flex-col">
         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-sans">
           {label}
@@ -31,7 +31,7 @@ export default function MetricCard({ icon: Icon, label, value, delta, iconBg, ic
         )}
       </div>
 
-      <div className={`h-10 w-10 rounded-none flex items-center justify-center shrink-0 border border-black/[0.05] ${iconBg}`}>
+      <div className={`h-10 w-10 summary-card rounded-lg flex items-center justify-center shrink-0 border border-black/[0.05] ${iconBg}`}>
         <Icon size={18} className={iconColor} strokeWidth={2} />
       </div>
     </div>

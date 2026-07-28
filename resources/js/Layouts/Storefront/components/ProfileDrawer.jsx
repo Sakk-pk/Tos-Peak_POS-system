@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
+import axios from 'axios';
+import { cartService } from '@/Services/cartService';
 import { 
   Settings, Info, QrCode, X, Star, ArrowRight, HelpCircle, ArrowLeft
 } from 'lucide-react';
@@ -11,36 +13,28 @@ const VOUCHERS = [
 ];
 
 export default function ProfileDrawer({ showUserDrawer, setShowUserDrawer, user }) {
-  const pointsKey = user?.id ? `tos_member_points_${user.id}` : 'tos_member_points';
-  const vouchersKey = user?.id ? `tos_redeemed_vouchers_${user.id}` : 'tos_redeemed_vouchers';
+  const { auth } = usePage().props;
 
-  // Sync state to LocalStorage for persistent rewards simulation
-  const [memberPoints, setMemberPoints] = useState(100);
-  const [redeemedVouchers, setRedeemedVouchers] = useState([]);
+  // ── Database-backed reward state (from Inertia shared props) ────────────
+  // auth.user.points and auth.user.redeemed_vouchers come from the database
+  // via HandleInertiaRequests.php on every page load/navigation.
+  const [memberPoints, setMemberPoints] = useState(auth?.user?.points ?? 100);
+  const [redeemedVouchers, setRedeemedVouchers] = useState(auth?.user?.redeemed_vouchers ?? []);
+  const [redeemLoading, setRedeemLoading] = useState(false);
 
+  // Sync when Inertia props refresh (e.g. after checkout awards points)
   useEffect(() => {
-    try {
-      const storedPoints = localStorage.getItem(pointsKey);
-      setMemberPoints(storedPoints ? parseInt(storedPoints, 10) : 100);
-      
-      const storedVouchers = localStorage.getItem(vouchersKey);
-      setRedeemedVouchers(storedVouchers ? JSON.parse(storedVouchers) : []);
-    } catch (_) {}
-  }, [user?.id, pointsKey, vouchersKey]);
+    if (auth?.user) {
+      setMemberPoints(auth.user.points ?? 100);
+      setRedeemedVouchers(auth.user.redeemed_vouchers ?? []);
+    }
+  }, [auth?.user?.points, auth?.user?.redeemed_vouchers]);
 
   const [showPointsHelp, setShowPointsHelp] = useState(false);
   const [drawerView, setDrawerView] = useState('main'); // 'main' | 'rewards'
 
   const [shouldRender, setShouldRender] = useState(showUserDrawer);
   const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem(pointsKey, String(memberPoints));
-  }, [memberPoints, pointsKey]);
-
-  useEffect(() => {
-    localStorage.setItem(vouchersKey, JSON.stringify(redeemedVouchers));
-  }, [redeemedVouchers, vouchersKey]);
 
   useEffect(() => {
     if (showUserDrawer) {
@@ -63,6 +57,36 @@ export default function ProfileDrawer({ showUserDrawer, setShowUserDrawer, user 
     : 'US';
 
   const myRedeemedList = VOUCHERS.filter(v => redeemedVouchers.includes(v.id));
+
+  // ── Redeem voucher — writes to DB via API ─────────────────────────────
+  const handleRedeem = async (voucher) => {
+    if (redeemLoading) return;
+    setRedeemLoading(true);
+    try {
+      const res = await axios.post('/api/user-rewards/redeem', {
+        voucher_id:   voucher.id,
+        points_cost:  voucher.pts,
+        description:  `Redeemed voucher: ${voucher.name}`,
+      });
+
+      if (res.data.success) {
+        setMemberPoints(res.data.points);
+        setRedeemedVouchers(res.data.redeemed_vouchers);
+        window.dispatchEvent(new CustomEvent('toast', {
+          detail: { message: `Successfully redeemed! Use code ${voucher.code} at checkout.`, type: 'success' }
+        }));
+        // Reload Inertia props so other components see fresh points
+        router.reload({ only: ['auth'] });
+      }
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Redemption failed. Try again.';
+      window.dispatchEvent(new CustomEvent('toast', {
+        detail: { message: msg, type: 'error' }
+      }));
+    } finally {
+      setRedeemLoading(false);
+    }
+  };
 
   return (
     <>
@@ -114,7 +138,7 @@ export default function ProfileDrawer({ showUserDrawer, setShowUserDrawer, user 
                                   <Star size={20} className="fill-white" />
                               </div>
                               <div>
-                                  <span className="text-[32px] font-black text-neutral-955 text-neutral-950 leading-none block">
+                                  <span className="text-[32px] font-black text-neutral-950 leading-none block">
                                       {memberPoints}
                                   </span>
                                   <span className="text-[9px] font-black text-neutral-400 uppercase tracking-widest block mt-0.5">
@@ -150,6 +174,8 @@ export default function ProfileDrawer({ showUserDrawer, setShowUserDrawer, user 
 
                           {/* Quick Link Row stack */}
                           <div className="flex flex-col gap-3.5 pt-2">
+
+
                               <Link 
                                   href={route('account.settings')}
                                   onClick={() => setShowUserDrawer(false)}
@@ -186,7 +212,7 @@ export default function ProfileDrawer({ showUserDrawer, setShowUserDrawer, user 
                       <>
                           {/* Logged Out Call to Action */}
                           <div className="space-y-4 py-4">
-                              <h3 className="text-[18px] font-black uppercase tracking-tight text-neutral-955 text-neutral-955 text-neutral-950">
+                              <h3 className="text-[18px] font-black uppercase tracking-tight text-neutral-950">
                                   Unlock Your Member Status
                               </h3>
                               <p className="text-xs text-neutral-500 font-semibold leading-relaxed">
@@ -215,7 +241,7 @@ export default function ProfileDrawer({ showUserDrawer, setShowUserDrawer, user 
                 </>
               ) : (
                 <div className="space-y-2">
-                  <h3 className="text-[32px] font-black uppercase tracking-tight text-neutral-955 text-neutral-955 text-neutral-950 leading-none" style={{ fontFamily: "'Syne', sans-serif" }}>
+                  <h3 className="text-[32px] font-black uppercase tracking-tight text-neutral-950 leading-none" style={{ fontFamily: "'Syne', sans-serif" }}>
                     my rewards
                   </h3>
                   <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mt-1">
@@ -245,7 +271,7 @@ export default function ProfileDrawer({ showUserDrawer, setShowUserDrawer, user 
                                   <div key={v.id} className="border border-neutral-200 p-4 rounded-none bg-white flex flex-col justify-between gap-3 hover:border-black transition">
                                       <div className="space-y-1">
                                           <div className="flex justify-between items-baseline">
-                                              <h4 className="text-[12px] font-black text-neutral-955 text-neutral-950 uppercase">{v.name}</h4>
+                                              <h4 className="text-[12px] font-black text-neutral-950 uppercase">{v.name}</h4>
                                               <span className="text-[11px] font-black text-emerald-600 shrink-0">{v.pts} PTS</span>
                                           </div>
                                           <p className="text-[10px] text-neutral-400 font-semibold leading-relaxed">{v.desc}</p>
@@ -257,21 +283,15 @@ export default function ProfileDrawer({ showUserDrawer, setShowUserDrawer, user 
                                           </div>
                                       ) : (
                                           <button
-                                              disabled={!canAfford}
-                                              onClick={() => {
-                                                  setMemberPoints(prev => prev - v.pts);
-                                                  setRedeemedVouchers(prev => [...prev, v.id]);
-                                                  window.dispatchEvent(new CustomEvent('toast', {
-                                                      detail: { message: `Successfully redeemed! Use code ${v.code} at checkout.`, type: 'success' }
-                                                  }));
-                                              }}
+                                              disabled={!canAfford || redeemLoading}
+                                              onClick={() => handleRedeem(v)}
                                               className={`w-full py-2 text-[10px] font-black uppercase tracking-widest transition text-center ${
-                                                  canAfford
+                                                  canAfford && !redeemLoading
                                                       ? 'bg-black text-white hover:bg-neutral-800'
                                                       : 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
                                               }`}
                                           >
-                                              {canAfford ? 'Redeem Voucher' : `Need ${v.pts} Points`}
+                                              {canAfford ? (redeemLoading ? 'Redeeming…' : 'Redeem Voucher') : `Need ${v.pts} Points`}
                                           </button>
                                       )}
                                   </div>
@@ -285,8 +305,11 @@ export default function ProfileDrawer({ showUserDrawer, setShowUserDrawer, user 
                                   href={route('logout')} 
                                   method="post" 
                                   as="button" 
-                                  onClick={() => setShowUserDrawer(false)}
-                                  className="w-full text-center py-2.5 text-xs font-black uppercase tracking-widest text-red-600 hover:bg-red-50 border border-dashed border-red-200 transition"
+                                  onClick={() => {
+                                      cartService.clearAllSessionData();
+                                      setShowUserDrawer(false);
+                                  }}
+                                  className="w-full text-center py-2.5 text-xs font-black uppercase tracking-widest text-red-600 hover:bg-red-50 border border-dashed border-red-200 transition cursor-pointer"
                               >
                                   Log Out
                               </Link>
@@ -297,7 +320,7 @@ export default function ProfileDrawer({ showUserDrawer, setShowUserDrawer, user 
               ) : (
                 // MY REWARDS SUBVIEW
                 <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-neutral-955 text-neutral-950 pb-2.5 border-b border-neutral-100 mb-4 shrink-0">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-neutral-950 pb-2.5 border-b border-neutral-100 mb-4 shrink-0">
                       Redeemed Rewards
                   </div>
                   
@@ -324,14 +347,14 @@ export default function ProfileDrawer({ showUserDrawer, setShowUserDrawer, user 
                               <div key={v.id} className="border border-neutral-200 p-4 rounded-none bg-neutral-50 flex flex-col justify-between gap-3.5 hover:border-black transition">
                                   <div className="space-y-1">
                                       <div className="flex justify-between items-baseline">
-                                          <h4 className="text-[12px] font-black text-neutral-955 text-neutral-950 uppercase">{v.name}</h4>
+                                          <h4 className="text-[12px] font-black text-neutral-950 uppercase">{v.name}</h4>
                                           <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2 py-0.5 border border-emerald-200">Active</span>
                                       </div>
                                       <p className="text-[10px] text-neutral-400 font-semibold leading-relaxed">{v.desc}</p>
                                   </div>
                                   
                                   <div className="bg-white border border-dashed border-neutral-300 text-center py-2 px-3 flex justify-between items-center text-[10px] font-bold tracking-widest uppercase">
-                                      <span>Code: <span className="font-black underline select-all text-neutral-955 text-neutral-955 text-neutral-955 text-neutral-950 bg-neutral-100 px-1 py-0.5">{v.code}</span></span>
+                                      <span>Code: <span className="font-black underline select-all text-neutral-950 bg-neutral-100 px-1 py-0.5">{v.code}</span></span>
                                       <button 
                                           onClick={() => {
                                               navigator.clipboard.writeText(v.code);

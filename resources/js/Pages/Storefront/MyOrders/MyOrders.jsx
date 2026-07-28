@@ -46,7 +46,7 @@ const PaymentMethod = ({ method }) => {
     );
 };
 
-export default function MyOrders({ orders, filters = {} }) {
+export default function CustomerOrderHistoryPage({ orders, filters = {} }) {
     const [searchInput, setSearchInput] = useState(filters.search || '');
     const [expandedId, setExpandedId] = useState(null);
     const [invoiceOrder, setInvoiceOrder] = useState(null);
@@ -112,7 +112,7 @@ export default function MyOrders({ orders, filters = {} }) {
                             type="text"
                             value={searchInput}
                             onChange={(e) => setSearchInput(e.target.value)}
-                            placeholder="Search by order number…"
+                            placeholder="Search by order no. (e.g. 1, 2…)"
                             className="w-full bg-transparent py-3.5 pl-11 pr-24 text-xs font-bold text-neutral-900 outline-none border-none focus:ring-0"
                         />
                         <button
@@ -148,23 +148,19 @@ export default function MyOrders({ orders, filters = {} }) {
                                 key={order.id}
                                 className="border border-neutral-200 bg-white shadow-sm hover:border-black transition"
                             >
-                                {/* ── Order Header ── */}
-                                <button
-                                    type="button"
-                                    onClick={() => toggleExpand(order.id)}
-                                    className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left outline-none"
-                                >
+                                {/* ── Order Header / Row ── */}
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5">
                                     <div className="flex items-center gap-4 min-w-0">
-                                        {/* Order icon */}
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-neutral-50 border border-neutral-100">
-                                            <Package className="h-5 w-5 text-neutral-500" />
+                                        {/* Order sequence badge */}
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-black text-white font-mono font-black text-xs">
+                                            #{order.customer_order_no || 1}
                                         </div>
-                                        {/* Order info */}
+                                        {/* Order basic info */}
                                         <div className="min-w-0">
                                             <p className="text-sm font-black text-neutral-950 font-mono tracking-tight">
-                                                {order.order_number}
+                                                No. {order.customer_order_no || 1}
                                             </p>
-                                            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                            <div className="flex items-center gap-2 mt-1 flex-wrap">
                                                 <span className="flex items-center gap-1 text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
                                                     <Calendar className="h-3 w-3" />
                                                     {formatDate(order.created_at)}
@@ -174,23 +170,26 @@ export default function MyOrders({ orders, filters = {} }) {
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-4 shrink-0">
-                                        <div className="text-right">
+                                    <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 border-neutral-100">
+                                        <div className="text-left sm:text-right">
                                             <p className="text-sm font-black text-neutral-950">
                                                 {formatPrice(order.total_amount)}
                                             </p>
                                             <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">
-                                                {order.items?.length || 0} {order.items?.length === 1 ? 'item' : 'items'}
+                                                {order.orderItems?.length || 0} {order.orderItems?.length === 1 ? 'item' : 'items'}
                                             </p>
                                         </div>
                                         <StatusBadge status={order.payment_status} />
-                                        <ChevronRight
-                                            className={`h-4 w-4 text-neutral-400 transition-transform duration-200 ${
-                                                expandedId === order.id ? 'rotate-90' : ''
-                                            }`}
-                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleExpand(order.id)}
+                                            className="inline-flex items-center gap-1.5 bg-neutral-900 hover:bg-black text-white text-[10px] font-black uppercase tracking-wider px-3.5 py-2 transition"
+                                        >
+                                            <Eye size={12} />
+                                            <span>{expandedId === order.id ? 'Hide Detail' : 'View Detail'}</span>
+                                        </button>
                                     </div>
-                                </button>
+                                </div>
 
                                 {/* ── Expanded Items ── */}
                                 {expandedId === order.id && (
@@ -230,7 +229,7 @@ export default function MyOrders({ orders, filters = {} }) {
                                         </div>
                                         
                                         <div className="space-y-3">
-                                            {(order.items || []).map((item, i) => {
+                                            {(order.orderItems || []).map((item, i) => {
                                                 const imgSrc = item.product_image
                                                     ? (item.product_image.startsWith('http') || item.product_image.startsWith('/'))
                                                         ? item.product_image

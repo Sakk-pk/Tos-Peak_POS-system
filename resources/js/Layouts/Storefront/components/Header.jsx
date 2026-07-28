@@ -4,12 +4,13 @@ import {
   ShoppingBag, Search, X, LayoutDashboard, ChevronDown, User, Heart
 } from 'lucide-react';
 import { useCart } from '@/Hooks/useCart';
+import LoginModal from '@/Components/LoginModal';
 
 export default function Header({ 
   user, 
   activeCategory = 'All', 
   categories = [], 
-  isStaff, 
+  isAdmin, 
   staffDashboardUrl, 
   setShowUserDrawer 
 }) {
@@ -19,6 +20,7 @@ export default function Header({
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveredCategory, setHoveredCategory] = useState(null);
+  const [loginModal, setLoginModal] = useState({ open: false, message: '' });
   
   const hoverTimeoutRef = useRef(null);
 
@@ -48,6 +50,16 @@ export default function Header({
   const handleCartClick = (e) => {
     e.preventDefault();
     router.visit(route('cart.index'));
+  };
+
+  const handleWishlistClick = (e) => {
+    if (!user) {
+      e.preventDefault();
+      setLoginModal({
+        open: true,
+        message: 'Sign in to view your saved wishlist items'
+      });
+    }
   };
 
   return (
@@ -137,6 +149,7 @@ export default function Header({
             {/* Wishlist icon with badge */}
             <Link
               href={route('wishlist.index')}
+              onClick={handleWishlistClick}
               className="relative flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-50 hover:text-black no-underline"
               aria-label="Wishlist"
             >
@@ -163,8 +176,8 @@ export default function Header({
               )}
             </Link>
 
-            {/* Staff dashboard shortcut */}
-            {isStaff && (
+            {/* Admin-only dashboard shortcut */}
+            {isAdmin && (
               <Link
                 href={staffDashboardUrl}
                 className="flex h-9 items-center gap-1.5 rounded-lg border border-black/10 bg-gray-50 px-3 text-[10px] font-bold uppercase tracking-wider text-gray-700 transition hover:bg-gray-100 hover:text-black no-underline hover:no-underline"
@@ -388,6 +401,14 @@ export default function Header({
           </Link>
         ))}
       </div>
+
+      {/* Guest Login Modal */}
+      <LoginModal 
+        isOpen={loginModal.open}
+        onClose={() => setLoginModal({ open: false, message: '' })}
+        message={loginModal.message}
+        redirectTo={route('wishlist.index')}
+      />
     </>
   );
 }

@@ -15,7 +15,6 @@ function formatPrice(value) {
 
 export default function Wishlist({ products }) {
     const { auth } = usePage().props;
-    const wishlistKey = auth?.user?.id ? `wishlist_items_${auth.user.id}` : 'wishlist_items';
 
     const [wishlistItems, setWishlistItems] = useState(products || []);
     const [searchTerm, setSearchTerm] = useState('');
@@ -23,38 +22,9 @@ export default function Wishlist({ products }) {
     const [showSortDropdown, setShowSortDropdown] = useState(false);
     const [showFiltersAlert, setShowFiltersAlert] = useState(false);
 
-    const loadWishlist = () => {
-        if (products) {
-            setWishlistItems(products);
-            return;
-        }
-        const stored = localStorage.getItem(wishlistKey);
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored);
-                setWishlistItems(parsed || []);
-            } catch (e) {
-                setWishlistItems([]);
-            }
-        } else {
-            setWishlistItems([]);
-        }
-    };
-
-    // Load wishlist items on client mount & listen for storage updates
     useEffect(() => {
-        if (products) {
-            setWishlistItems(products);
-        } else {
-            loadWishlist();
-            window.addEventListener('storage', loadWishlist);
-            const interval = setInterval(loadWishlist, 1000); // Polling backup
-            return () => {
-                window.removeEventListener('storage', loadWishlist);
-                clearInterval(interval);
-            };
-        }
-    }, [products, wishlistKey]);
+        setWishlistItems(products || []);
+    }, [products]);
 
     // Filter and Sort Logic
     const processedItems = useMemo(() => {

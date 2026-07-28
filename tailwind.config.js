@@ -12,11 +12,11 @@ export default {
 
     theme: {
         extend: {
-            // ── TOS-PEAK v2.0 Redesigned Typefaces ─────────────────────────
+            // ── TOS-PEAK Standard Typefaces ─────────────────────────
             fontFamily: {
-                display: ['Syne', ...defaultTheme.fontFamily.sans],
+                display: ['Plus Jakarta Sans', ...defaultTheme.fontFamily.sans],
                 sans:    ['Plus Jakarta Sans', ...defaultTheme.fontFamily.sans],
-                mono:    ['DM Mono', ...defaultTheme.fontFamily.mono],
+                mono:    ['Plus Jakarta Sans', ...defaultTheme.fontFamily.sans],
             },
 
             // ── Refined Color System ───

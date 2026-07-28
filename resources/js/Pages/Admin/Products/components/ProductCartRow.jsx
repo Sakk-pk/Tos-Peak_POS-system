@@ -3,6 +3,7 @@ import TableCardRow from '@/Components/Shared/TableCardRow';
 import { useTableRowConfig } from '@/Context/TableRowContext';
 import { Tag, Layers, Package } from 'lucide-react';
 import Badge from '@/Components/ui/Badge';
+import { getAccurateColorHex } from '@/Utils/colorHelper';
 
 export default function ProductCartRow({ product, formatPrice, onEdit, onDelete, onView, variant = 'contiguous' }) {
     const { classes } = useTableRowConfig();
@@ -46,7 +47,7 @@ export default function ProductCartRow({ product, formatPrice, onEdit, onDelete,
     const subCategoryName = product.sub_category?.name ?? product.sub_category_name ?? product.sub_category ?? '';
 
     const isOutOfStock = totalStock === 0;
-    const isLowStock = totalStock > 0 && totalStock <= (product.low_stock_threshold ?? 20);
+    const isLowStock = totalStock > 0 && totalStock <= 15;
 
     const imageSrc = product.image
         ? (product.image.startsWith('http') || product.image.startsWith('/'))
@@ -73,13 +74,13 @@ export default function ProductCartRow({ product, formatPrice, onEdit, onDelete,
                     {/* Thumbnail */}
                     <div 
                         onClick={onView}
-                        className="w-28 h-28 shrink-0 bg-white flex items-center justify-center p-3 border-r border-[#E5E7EB] cursor-pointer hover:bg-[#F9FAFB] transition select-none"
+                        className="w-28 h-28 shrink-0 bg-[#f5f5f5] overflow-hidden flex items-center justify-center border-r border-[#E5E7EB] cursor-pointer hover:bg-gray-100 transition select-none"
                     >
                         {imageSrc ? (
                             <img
                                 src={imageSrc}
                                 alt={product.name}
-                                className="h-full w-full object-contain mix-blend-multiply transition-transform duration-300 hover:scale-105"
+                                className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
                             />
                         ) : (
@@ -103,9 +104,9 @@ export default function ProductCartRow({ product, formatPrice, onEdit, onDelete,
                         >
                             {product.name}
                         </h4>
-                        {product.description && (
-                            <p className="max-w-[340px] text-xs font-semibold text-gray-450 truncate mt-1" title={product.description}>
-                                {subCategoryName ? `${subCategoryName} • ` : ''}{product.description}
+                        {subCategoryName && (
+                            <p className="max-w-[340px] text-xs font-semibold text-gray-400 truncate mt-1">
+                                {subCategoryName}
                             </p>
                         )}
                     </div>
@@ -138,7 +139,7 @@ export default function ProductCartRow({ product, formatPrice, onEdit, onDelete,
                             key={color.id || idx} 
                             className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-gray-50/50 border border-black/[0.04] text-[10px] font-bold text-gray-600 uppercase"
                         >
-                            <span className="h-2 w-2 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: color.value }} />
+                            <span className="h-2 w-2 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: getAccurateColorHex(color.name, color.value) }} />
                             {color.name}
                         </span>
                     ))}

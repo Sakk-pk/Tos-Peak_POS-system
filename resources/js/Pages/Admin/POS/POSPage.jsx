@@ -5,7 +5,7 @@ import Cart from './components/Cart';
 import ProductCard from './components/ProductCard';
 import Modal from '@/Components/Modal';
 import KhqrPayment from '@/Components/KhqrPayment';
-import { Search, CheckCircle2, ChevronRight, ShoppingBag, CreditCard, QrCode } from 'lucide-react';
+import { Search, CheckCircle2, ChevronRight, ShoppingBag, CreditCard, QrCode, Printer } from 'lucide-react';
 import { Toast } from '@/Components/Toast';
 
 function formatPrice(value) {
@@ -55,6 +55,18 @@ export default function POSPage({ products: rawProducts = [], categories = [], s
             setToast({ message: successMsg, type: 'success' });
             window.history.replaceState({}, document.title, window.location.pathname);
         }
+    }, []);
+
+    useEffect(() => {
+        const handleStorageChange = () => {
+            try {
+                const freshCart = JSON.parse(localStorage.getItem('pos_cart')) || [];
+                setCartItems(freshCart);
+            } catch (e) {}
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
     }, []);
 
     useEffect(() => {
@@ -174,6 +186,7 @@ export default function POSPage({ products: rawProducts = [], categories = [], s
         }
 
         router.post(route('orders.store'), {
+            source: 'pos',
             customer_name: 'Walk-in Customer',
             customer_email: customerEmail,
             customer_phone: '',
@@ -234,6 +247,92 @@ export default function POSPage({ products: rawProducts = [], categories = [], s
         setShowCheckout(false);
         setIsOrderComplete(false);
         setReceiptDetails(null);
+    };
+
+    const handlePrintReceipt = () => {
+        if (!receiptDetails) return;
+
+        const printWindow = window.open('', '_blank', 'width=400,height=600');
+        if (!printWindow) {
+            alert('Please allow popups to print receipt.');
+            return;
+        }
+
+        const itemsHtml = (receiptDetails.items || []).map(item => `
+            <tr>
+                <td style="padding:4px 0;">${item.name}<br><small style="color:#666;">Size ${item.size || 'N/A'} / ${item.color || 'Default'}</small></td>
+                <td style="text-align:center;padding:4px 0;">x${item.quantity}</td>
+                <td style="text-align:right;padding:4px 0;">$${(item.price * item.quantity).toFixed(2)}</td>
+            </tr>
+        `).join('');
+
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Receipt ${receiptDetails.orderId}</title>
+                <style>
+                    @page { size: 80mm auto; margin: 5mm; }
+                    body { font-family: 'Courier New', Courier, monospace; width: 80mm; margin: 0 auto; padding: 10px; color: #000; font-size: 12px; }
+                    .text-center { text-align: center; }
+                    .text-right { text-align: right; }
+                    .bold { font-weight: bold; }
+                    .divider { border-top: 1px dashed #000; margin: 8px 0; }
+                    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+                    th { border-bottom: 1px solid #000; text-align: left; padding-bottom: 4px; }
+                </style>
+            </head>
+            <body>
+                <div class="text-center">
+                    <h2 style="margin:0;font-size:16px;">TOS-PEAK SNEAKERS</h2>
+                    <p style="margin:2px 0;font-size:10px;">FIND YOUR PAIR</p>
+                    <p style="margin:2px 0;font-size:10px;">Phnom Penh, Cambodia</p>
+                </div>
+                <div class="divider"></div>
+                <div>
+                    <div><strong>Ref:</strong> ${receiptDetails.orderId}</div>
+                    <div><strong>Date:</strong> ${receiptDetails.date}</div>
+                </div>
+                <div class="divider"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th style="text-align:center;">Qty</th>
+                            <th style="text-align:right;">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                </table>
+                <div class="divider"></div>
+                <table>
+                    <tr><td>Subtotal:</td><td class="text-right">$${Number(receiptDetails.subtotal || 0).toFixed(2)}</td></tr>
+                    <tr><td>Tax (8%):</td><td class="text-right">$${Number(receiptDetails.tax || 0).toFixed(2)}</td></tr>
+                    <tr class="bold" style="font-size:13px;"><td>Grand Total:</td><td class="text-right">$${Number(receiptDetails.grandTotal || 0).toFixed(2)}</td></tr>
+                </table>
+                <div class="divider"></div>
+                <table>
+                    <tr><td>Payment Method:</td><td class="text-right" style="text-transform:uppercase;">${receiptDetails.paymentMethod}</td></tr>
+                    <tr><td>Paid Amount:</td><td class="text-right">$${Number(receiptDetails.cashReceived || 0).toFixed(2)}</td></tr>
+                    ${receiptDetails.paymentMethod === 'cash' ? `<tr><td class="bold">Change:</td><td class="text-right bold">$${Number(receiptDetails.change || 0).toFixed(2)}</td></tr>` : ''}
+                </table>
+                <div class="divider"></div>
+                <div class="text-center" style="margin-top:15px;font-size:10px;">
+                    <p style="margin:2px 0;">Thank you for shopping at TOS-PEAK!</p>
+                    <p style="margin:2px 0;">Please keep receipt for returns/exchanges.</p>
+                </div>
+                <script>
+                    window.onload = function() {
+                        window.print();
+                        setTimeout(function() { window.close(); }, 500);
+                    }
+                </script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
     };
 
     const innerContent = (
@@ -325,30 +424,32 @@ export default function POSPage({ products: rawProducts = [], categories = [], s
     );
 
     const checkoutModal = (
-        <Modal show={showCheckout} onClose={() => !isOrderComplete && setShowCheckout(false)} maxWidth="md">
-            <div className="p-6">
+        <Modal show={showCheckout} onClose={() => !isOrderComplete && setShowCheckout(false)} maxWidth="sm">
+            <div className="p-4">
                 {!isOrderComplete ? (
-                    <form onSubmit={handleCompleteOrder} className="space-y-5">
-                        <div className="border-b border-gray-100 pb-3">
-                            <h2 className="text-lg font-extrabold text-gray-900">Checkout</h2>
-                            <p className="text-xs text-gray-400">Select payment method and complete order.</p>
+                    <form onSubmit={handleCompleteOrder} className="space-y-3">
+                        <div className="border-b border-gray-100 pb-2 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-base font-extrabold text-gray-900 leading-none">Checkout</h2>
+                                <p className="text-[10px] text-gray-400 mt-0.5">Select payment method to complete order.</p>
+                            </div>
                         </div>
 
                         {/* Order Summary */}
-                        <div className="rounded-2xl bg-gray-50 p-4 border border-gray-100">
-                            <div className="flex justify-between text-sm text-gray-500">
+                        <div className="rounded-xl bg-gray-50 p-2.5 border border-gray-100">
+                            <div className="flex justify-between text-xs text-gray-500 font-semibold">
                                 <span>Items Summary</span>
                                 <span>{cartItems.reduce((sum, item) => sum + item.quantity, 0)} Items</span>
                             </div>
-                            <div className="mt-2 flex justify-between items-baseline">
-                                <span className="text-sm font-bold text-gray-800 uppercase tracking-tight">Total Amount</span>
-                                <span className="text-2xl font-black text-black">{formatPrice(grandTotal)}</span>
+                            <div className="mt-1 flex justify-between items-baseline">
+                                <span className="text-xs font-bold text-gray-800 uppercase tracking-tight">Total Amount</span>
+                                <span className="text-xl font-black text-black">{formatPrice(grandTotal)}</span>
                             </div>
                         </div>
 
                         {/* Customer Email */}
-                        <div className="space-y-1.5">
-                            <label htmlFor="customerEmail" className="text-xs font-extrabold uppercase tracking-wider text-gray-400">Customer Email (Optional)</label>
+                        <div className="space-y-1">
+                            <label htmlFor="customerEmail" className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400">Customer Email (Optional)</label>
                             <input
                                 type="email"
                                 id="customerEmail"
@@ -356,7 +457,7 @@ export default function POSPage({ products: rawProducts = [], categories = [], s
                                 value={customerEmail}
                                 onChange={(e) => setCustomerEmail(e.target.value)}
                                 placeholder="Enter customer email address"
-                                className="h-10 w-full rounded-xl border border-black/10 bg-white px-3 text-sm font-semibold outline-none focus:border-black transition"
+                                className="h-9 w-full rounded-xl border border-black/10 bg-white px-3 text-xs font-semibold outline-none focus:border-black transition"
                             />
                         </div>
 
@@ -480,14 +581,24 @@ export default function POSPage({ products: rawProducts = [], categories = [], s
                             </div>
                         </div>
 
-                        <button
-                            type="button"
-                            onClick={handleNewSale}
-                            className="flex h-11 w-full items-center justify-center gap-1.5 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 active:bg-red-800 transition shadow-md shadow-red-600/10"
-                        >
-                            <span>Start New Sale</span>
-                            <ChevronRight className="h-4 w-4" />
-                        </button>
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                            <button
+                                type="button"
+                                onClick={handlePrintReceipt}
+                                className="flex h-10 w-full items-center justify-center gap-1.5 bg-black text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-neutral-900 active:scale-[0.98] transition shadow-sm"
+                            >
+                                <Printer className="h-3.5 w-3.5" />
+                                <span>Print Receipt</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleNewSale}
+                                className="flex h-10 w-full items-center justify-center gap-1 bg-red-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-red-700 active:scale-[0.98] transition shadow-sm"
+                            >
+                                <span>New Sale</span>
+                                <ChevronRight className="h-3.5 w-3.5" />
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

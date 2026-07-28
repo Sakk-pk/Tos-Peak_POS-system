@@ -18,19 +18,8 @@ abstract class TestCase extends BaseTestCase
     {
         // Ensure all permissions exist
         $permissionNames = [
-            'view-dashboard',
-            'manage-pos',
-            'manage-products',
-            'manage-variants',
-            'manage-inventory',
-            'manage-orders',
-            'manage-payments',
-            'manage-customers',
-            'manage-staff',
-            'manage-roles',
-            'view-notifications',
-            'view-reports',
-            'manage-settings',
+            'dashboard', 'pos', 'catalog', 'products', 'inventory', 'orders',
+            'customers', 'team-members', 'roles',
         ];
 
         foreach ($permissionNames as $name) {

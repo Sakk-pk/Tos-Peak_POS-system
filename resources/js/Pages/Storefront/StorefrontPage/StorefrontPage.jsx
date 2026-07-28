@@ -8,6 +8,8 @@ import KhqrPayment from '@/Components/KhqrPayment';
 import HeroCarousel from './components/HeroCarousel';
 import { Search, CheckCircle2, ChevronRight, ShoppingBag, CreditCard, QrCode, X, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
 import { Toast } from '@/Components/Toast';
+import { cartService } from '@/Services/cartService';
+import { useCart } from '@/Hooks/useCart';
 
 function formatPrice(value) {
     return new Intl.NumberFormat('en-US', {
@@ -87,13 +89,7 @@ export default function StorefrontPage({ products: rawProducts = [], categories 
         }));
     }, [rawProducts]);
 
-    const [cartItems, setCartItems] = useState(() => {
-        try {
-            return JSON.parse(localStorage.getItem('pos_cart')) || [];
-        } catch (e) {
-            return [];
-        }
-    });
+    const { cartItems, addToCart, updateQuantity, removeFromCart } = useCart();
 
     const [toast, setToast] = useState(null);
 
@@ -105,10 +101,6 @@ export default function StorefrontPage({ products: rawProducts = [], categories 
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     }, []);
-
-    useEffect(() => {
-        localStorage.setItem('pos_cart', JSON.stringify(cartItems));
-    }, [cartItems]);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
@@ -304,6 +296,13 @@ export default function StorefrontPage({ products: rawProducts = [], categories 
         return items;
     }, [filteredProducts, sortBy]);
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 8; // 8 items (2 rows of 4 or 4 rows of 2) for clean layout
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [selectedCategory, selectedSubCategory, selectedColors, selectedSizes, selectedBrands, maxPrice, sortBy, searchTerm]);
+
     const groupedGridProducts = useMemo(() => {
         const seen = new Set();
         return sortedProducts.filter((product) => {
@@ -313,43 +312,41 @@ export default function StorefrontPage({ products: rawProducts = [], categories 
         });
     }, [sortedProducts]);
 
-    const handleAddToCart = (product) => {
+    const totalPages = Math.ceil(groupedGridProducts.length / ITEMS_PER_PAGE) || 1;
+
+    const paginatedProducts = useMemo(() => {
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        return groupedGridProducts.slice(start, start + ITEMS_PER_PAGE);
+    }, [groupedGridProducts, currentPage]);
+
+    const handleAddToCart = async (product) => {
         if (product.stock <= 0) return;
-        setCartItems((prevItems) => {
-            const existingItem = prevItems.find((item) => item.id === product.id);
-            if (existingItem) {
-                if (existingItem.quantity >= product.stock) {
-                    setToast({ message: `Cannot add more. Only ${product.stock} item${product.stock !== 1 ? 's' : ''} in stock.`, type: 'error' });
-                    return prevItems;
-                }
-                return prevItems.map((item) =>
-                    item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-                );
-            }
-            return [...prevItems, { ...product, quantity: 1 }];
-        });
+        
+        const defaultSize = product.size?.name || (typeof product.size === 'string' ? product.size : '40');
+        const defaultColor = product.color?.name || (typeof product.color === 'string' ? product.color : 'Black');
+
+        await addToCart(product, 1, defaultSize, defaultColor);
+
+        setToast({ message: `Added "${product.name}" to Bag.`, type: 'success' });
     };
 
-    const handleUpdateQuantity = (productId, newQty) => {
-        const product = localProducts.find((p) => p.id === productId);
-        if (!product) return;
+    const handleUpdateQuantity = async (productId, newQty) => {
+        const item = cartItems.find((i) => i.id === productId);
+        if (!item) return;
         if (newQty <= 0) {
             handleRemoveItem(productId);
             return;
         }
-        if (newQty > product.stock) {
-            setToast({ message: `Only ${product.stock} item${product.stock !== 1 ? 's' : ''} are in stock.`, type: 'error' });
+        if (item.stock && newQty > item.stock) {
+            setToast({ message: `Only ${item.stock} item${item.stock !== 1 ? 's' : ''} are in stock.`, type: 'error' });
             return;
         }
-        setCartItems((prevItems) =>
-            prevItems.map((item) =>
-                item.id === productId ? { ...item, quantity: newQty } : item
-            )
-        );
+        await updateQuantity(productId, newQty, item.size, item.color);
     };
 
-    const handleRemoveItem = (productId) => {
-        setCartItems((prevItems) => prevItems.filter((item) => item.id !== productId));
+    const handleRemoveItem = async (productId) => {
+        const item = cartItems.find((i) => i.id === productId);
+        await removeFromCart(productId, item?.size, item?.color);
     };
 
     const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -750,17 +747,53 @@ export default function StorefrontPage({ products: rawProducts = [], categories 
                                 <p className="text-xs text-gray-400 mt-1">Try clearing or adjusting your filters</p>
                             </div>
                         ) : (
-                            <div className="grid content-start gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 transition-all duration-300">
-                                {groupedGridProducts.map((product) => (
-                                    <ProductCard
-                                        key={product.id}
-                                        product={product}
-                                        formatPrice={formatPrice}
-                                        isStorefront={true}
-                                        onAddToCart={handleAddToCart}
-                                    />
-                                ))}
-                            </div>
+                            <>
+                                <div className="grid content-start gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 transition-all duration-300">
+                                    {paginatedProducts.map((product) => (
+                                        <ProductCard
+                                            key={product.id}
+                                            product={product}
+                                            formatPrice={formatPrice}
+                                            isStorefront={true}
+                                            onAddToCart={handleAddToCart}
+                                        />
+                                    ))}
+                                </div>
+
+                                {totalPages > 1 && (
+                                    <div className="mt-8 flex items-center justify-center gap-2 py-4">
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                            disabled={currentPage === 1}
+                                            className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                        >
+                                            Previous
+                                        </button>
+
+                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => setCurrentPage(pageNum)}
+                                                className={`h-8 w-8 rounded-lg text-xs font-bold transition flex items-center justify-center border ${
+                                                    currentPage === pageNum
+                                                        ? 'bg-black text-white border-black shadow-sm'
+                                                        : 'bg-white text-gray-700 border-gray-200 hover:border-black'
+                                                }`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        ))}
+
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                            disabled={currentPage === totalPages}
+                                            className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>

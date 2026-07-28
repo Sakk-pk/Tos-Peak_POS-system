@@ -1,69 +1,84 @@
 import AdminLayout from '@/Layouts/Admin/AdminLayout';
 import InputError from '@/Components/InputError';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import {
-    Plus, Users, X, Trash2, Check, Pencil, Lock,
-    Shield, Copy, Crown, Briefcase, UserCog, Star,
+    Plus, Users, X, Trash2, Check, Pencil, Lock, Shield, Copy, Star, CreditCard, Boxes, Crown, UserRound,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
 // ─── Permission display labels ────────────────────────────────────────────────
 const PERM_LABELS = {
-    'manage-roles':       'Roles & Permissions',
-    'manage-staff':       'Staff & Users',
-    'manage-products':    'Products',
-    'manage-inventory':   'Inventory',
-    'manage-pos':         'POS Checkout',
-    'manage-orders':      'Orders',
-    'manage-payments':    'Payments',
-    'manage-customers':   'Customers',
-    'manage-variants':    'Variants & SKUs',
-    'view-dashboard':     'Dashboard',
-    'view-notifications': 'Notifications',
-    'manage-settings':    'Settings',
-    'view-reports':       'Reports',
+    dashboard: 'Dashboard',
+    pos: 'POS',
+    catalog: 'Catalog Settings',
+    products: 'Products',
+    inventory: 'Inventory',
+    orders: 'Orders',
+    customers: 'Customers',
+    'team-members': 'Team Members',
+    roles: 'Roles',
 };
 
 const DISPLAY_ORDER = [
-    'view-dashboard', 'view-notifications',
-    'manage-pos', 'manage-orders', 'manage-payments',
-    'manage-products', 'manage-variants', 'manage-inventory',
-    'manage-customers', 'manage-staff', 'manage-roles',
-    'view-reports', 'manage-settings',
+    'dashboard', 'pos', 'catalog', 'products', 'inventory', 'orders',
+    'customers', 'team-members', 'roles',
 ];
 
-// ─── Role themes ──────────────────────────────────────────────────────────────
+// ─── Role themes (Dark Blue, Dark Red, Dark Grey) ──────────────────────────────
 const ROLE_THEMES = {
-    Admin: {
-        from: '#111111', to: '#1c1917',
-        icon: Crown, iconColor: 'text-orange-400',
-        glow: 'shadow-orange-500/5',
-        check: '#f97316',
-        pill: { bg: 'bg-orange-500/15', text: 'text-orange-350' },
+    admin: {
+        from: '#0F1E36', to: '#091322', // Dark Blue
+        icon: Shield, iconColor: 'text-blue-300',
+        glow: 'shadow-blue-950/40',
+        check: '#0F1E36',
+        pill: { bg: 'bg-blue-400/20', text: 'text-blue-200' },
     },
-    Manager: {
-        from: '#0f1f40', to: '#1e3a6e',
-        icon: Briefcase, iconColor: 'text-blue-200',
-        glow: 'shadow-blue-900/40',
-        check: '#60a5fa',
-        pill: { bg: 'bg-blue-400/15', text: 'text-blue-200' },
+    cashier: {
+        from: '#5C0D11', to: '#380608', // Dark Red
+        icon: CreditCard, iconColor: 'text-rose-300',
+        glow: 'shadow-rose-950/40',
+        check: '#5C0D11',
+        pill: { bg: 'bg-rose-400/20', text: 'text-rose-200' },
     },
-    Staff: {
-        from: '#0a2318', to: '#14532d',
-        icon: UserCog, iconColor: 'text-emerald-300',
-        glow: 'shadow-emerald-900/40',
-        check: '#34d399',
-        pill: { bg: 'bg-emerald-400/15', text: 'text-emerald-200' },
+    manager: {
+        from: '#475569', to: '#1E293B', // Lighter Grey
+        icon: Crown, iconColor: 'text-slate-200',
+        glow: 'shadow-slate-700/30',
+        check: '#475569',
+        pill: { bg: 'bg-slate-300/20', text: 'text-slate-100' },
+    },
+    inventory: {
+        from: '#0F1E36', to: '#091322', // Dark Blue
+        icon: Boxes, iconColor: 'text-blue-300',
+        glow: 'shadow-blue-950/40',
+        check: '#0F1E36',
+        pill: { bg: 'bg-blue-400/20', text: 'text-blue-200' },
     },
 };
-const DEFAULT_THEME = {
-    from: '#1f2937', to: '#374151',
-    icon: Star, iconColor: 'text-gray-300',
-    glow: 'shadow-gray-800/30',
-    check: '#9ca3af',
-    pill: { bg: 'bg-gray-400/15', text: 'text-gray-300' },
+
+const DYNAMIC_THEMES = [
+    ROLE_THEMES.admin,   // Dark Blue
+    ROLE_THEMES.cashier, // Dark Red
+    ROLE_THEMES.manager, // Dark Grey
+];
+
+const gt = (name = '') => {
+    const key = name.toLowerCase().trim();
+    if (ROLE_THEMES[key]) return ROLE_THEMES[key];
+    if (key.includes('admin')) return ROLE_THEMES.admin;
+    if (key.includes('cash') || key.includes('sale') || key.includes('pos')) return ROLE_THEMES.cashier;
+    if (key.includes('manag') || key.includes('lead') || key.includes('super')) return ROLE_THEMES.manager;
+    if (key.includes('stock') || key.includes('invent') || key.includes('ware')) return ROLE_THEMES.inventory;
+
+    // Hash function for custom role names
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+        hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % DYNAMIC_THEMES.length;
+    return DYNAMIC_THEMES[index];
 };
-const gt = (name) => ROLE_THEMES[name] ?? DEFAULT_THEME;
 
 // ─── Circular progress ring ───────────────────────────────────────────────────
 function Ring({ value, total }) {
@@ -276,11 +291,7 @@ export default function RolesListPage({ roles = [], permissions = [] }) {
             <Head title="Roles & Permissions" />
 
             {/* ── Page header ──────────────────────────────────────────── */}
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h1 className="text-xl font-black font-display uppercase tracking-tight text-gray-900">Roles & Permissions</h1>
-                    <p className="text-xs font-semibold text-gray-400 mt-0.5">Manage who can access each module in your POS system.</p>
-                </div>
+            <div className="flex items-center justify-end mb-4">
                 <button onClick={openCreate}
                     className="inline-flex items-center gap-2 rounded-xl bg-black px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-sm hover:bg-neutral-900 transition active:scale-95 duration-200">
                     <Plus className="h-4 w-4 stroke-[2.5]" />
@@ -383,30 +394,15 @@ export default function RolesListPage({ roles = [], permissions = [] }) {
                 </div>
             )}
 
-            {/* ══ DELETE CONFIRM ══════════════════════════════════════════ */}
-            {confirmDel && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/55 backdrop-blur-sm px-4">
-                    <div className="w-full max-w-sm rounded-3xl bg-white border border-black/[0.06] p-6 shadow-2xl animate-scale-in">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 mb-4 shadow-sm">
-                            <Trash2 className="h-5 w-5" />
-                        </div>
-                        <p className="text-[15px] font-black font-display uppercase tracking-wider text-gray-900 mb-1">Delete "{confirmDel.name}"?</p>
-                        <p className="text-xs font-semibold leading-relaxed text-gray-400 mb-5">
-                            This role will be permanently removed. Users assigned to it will lose access immediately.
-                        </p>
-                        <div className="flex gap-3">
-                            <button onClick={() => setConfirmDel(null)}
-                                className="flex-1 rounded-xl border border-black/10 py-2.5 text-xs font-bold uppercase tracking-wider text-gray-700 hover:bg-gray-50 bg-white transition active:scale-95 duration-200">
-                                Cancel
-                            </button>
-                            <button onClick={doDelete}
-                                className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-rose-700 transition active:scale-95 duration-200 shadow-sm">
-                                Delete Role
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmModal
+                show={!!confirmDel}
+                onClose={() => setConfirmDel(null)}
+                onConfirm={doDelete}
+                title="Delete Role"
+                message={`Are you sure you want to delete "${confirmDel?.name}"? This action cannot be undone. Users assigned to this role will lose access immediately.`}
+                confirmText="Delete Role"
+                variant="danger"
+            />
         </AdminLayout>
     );
 }

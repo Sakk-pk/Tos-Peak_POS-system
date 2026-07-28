@@ -6,7 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
-use App\Models\User;
+use App\Models\User\User;
 
 class UserSeeder extends Seeder
 {
@@ -37,31 +37,14 @@ class UserSeeder extends Seeder
 
         $managerRole = Role::firstOrCreate(['name' => 'Manager', 'guard_name' => 'web']);
         $managerRole->syncPermissions([
-            'view-dashboard',
-            'manage-pos',
-            'manage-products',
-            'manage-variants',
-            'manage-inventory',
-            'manage-orders',
-            'manage-payments',
-            'manage-customers',
-            'view-notifications',
-            'view-reports',
-            // No: manage-staff, manage-roles, manage-settings
+            'dashboard', 'pos', 'products', 'inventory', 'orders', 'customers',
         ]);
         $managerUser->syncRoles([$managerRole->name]);
 
         // ── Staff ────────────────────────────────────────────────────────────
         $staffRole = Role::firstOrCreate(['name' => 'Staff', 'guard_name' => 'web']);
         $staffRole->syncPermissions([
-            'view-dashboard',
-            'manage-pos',
-            'manage-orders',
-            'manage-payments',
-            'manage-customers',
-            'view-notifications',
-            // No: manage-products, manage-variants, manage-inventory,
-            //     manage-staff, manage-roles, view-reports, manage-settings
+            'dashboard', 'pos', 'orders', 'customers',
         ]);
 
         // ── Seed mock customers (is_team_member = false) ─────────────────────

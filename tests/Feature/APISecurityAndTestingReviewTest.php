@@ -34,15 +34,12 @@ class APISecurityAndTestingReviewTest extends TestCase
 
         $staffRole = Role::firstOrCreate(['name' => 'Staff', 'guard_name' => 'web']);
         $staffRole->syncPermissions([
-            'view-dashboard', 'manage-pos', 'manage-orders',
-            'manage-payments', 'manage-customers', 'view-notifications',
+            'dashboard', 'pos', 'orders', 'customers',
         ]);
 
         $managerRole = Role::firstOrCreate(['name' => 'Manager', 'guard_name' => 'web']);
         $managerRole->syncPermissions([
-            'view-dashboard', 'manage-pos', 'manage-products', 'manage-variants',
-            'manage-inventory', 'manage-orders', 'manage-payments',
-            'manage-customers', 'view-notifications', 'view-reports',
+            'dashboard', 'pos', 'products', 'inventory', 'orders', 'customers',
         ]);
 
         $this->category = Category::create(['name' => 'Clothing', 'view_order' => 1]);
@@ -210,12 +207,11 @@ class APISecurityAndTestingReviewTest extends TestCase
     }
 
     /**
-     * Test manual payment confirmation requires Admin/Manager role override.
+     * Test manual payment confirmation requires the orders module permission.
      */
-    public function test_manual_confirmation_requires_supervisor_role(): void
+    public function test_manual_confirmation_requires_orders_permission(): void
     {
         $cashier = User::factory()->create(['status' => 'Active']);
-        $cashier->assignRole('Staff');
 
         $payment = Payment::create([
             'amount' => 10.00,
@@ -232,12 +228,12 @@ class APISecurityAndTestingReviewTest extends TestCase
             ->assertJson([
                 'success' => false,
                 'requires_auth' => true,
-                'message' => 'Unauthorized: Supervisor authorization required (Admin or Manager).'
+                'message' => 'Unauthorized: Orders permission required.'
             ]);
     }
 
     /**
-     * Test manual payment confirmation permits Admin/Manager credentials.
+     * Test manual payment confirmation permits an orders-authorized supervisor.
      */
     public function test_manual_confirmation_permits_admin_supervisor_credentials(): void
     {

@@ -69,7 +69,7 @@ export default function InvoiceBody({ order, isPDF = false }) {
                     </div>
                 </div>
                 <div className="text-right">
-                    <h1 className="text-2xl font-black font-display uppercase tracking-wider text-black leading-none mb-2" style={{ fontFamily: "'Syne', sans-serif" }}>INVOICE</h1>
+                    <h1 className="text-2xl font-black font-display uppercase tracking-wider text-black leading-none mb-2">INVOICE</h1>
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Invoice Number</p>
                     <p className="text-sm font-bold font-mono text-black">{invoiceNumber}</p>
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-2">Order Reference</p>
@@ -115,7 +115,7 @@ export default function InvoiceBody({ order, isPDF = false }) {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-black/[0.04]">
-                        {(order.items || []).map((item, idx) => {
+                        {(order.orderItems || []).map((item, idx) => {
                             const imageSrc = item.product_image
                                 ? (item.product_image.startsWith('http') || item.product_image.startsWith('/'))
                                     ? item.product_image
