@@ -4,5 +4,7 @@
 cmds = [
     "mkdir -p storage/framework/views storage/framework/cache storage/framework/sessions bootstrap/cache",
     "npm run build",
+    "php artisan migrate --force",
+    "php artisan db:seed --force",
     "php artisan optimize:clear"
 ]
