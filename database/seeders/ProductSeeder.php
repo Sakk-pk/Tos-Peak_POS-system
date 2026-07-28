@@ -66,60 +66,64 @@ class ProductSeeder extends Seeder
         }
 
         // Now create products
-        Product::create([
-            'id' => 1,
-            'category_id' => $sportsCategory->id,
-            'sub_category_id' => $runningSub->id,
-            'color_id' => $redColor->id,
-            'brand_id' => $nikeBrand->id,
-            'size_id' => $size40->id,
-            'name' => 'Aero Runner',
-            'description' => 'Walk Fast',
-            'price' => 39.99,
-            'stock' => 11,
-            'image' => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop'
-        ]);
+        Product::updateOrCreate(
+            ['name' => 'Aero Runner'],
+            [
+                'category_id' => $sportsCategory->id,
+                'sub_category_id' => $runningSub->id,
+                'color_id' => $redColor->id,
+                'brand_id' => $nikeBrand->id,
+                'size_id' => $size40->id,
+                'description' => 'Walk Fast',
+                'price' => 39.99,
+                'stock' => 11,
+                'image' => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop'
+            ]
+        );
 
-        Product::create([
-            'id' => 2,
-            'category_id' => $sportsCategory->id,
-            'sub_category_id' => $sneakersSub->id,
-            'color_id' => $blackColor->id,
-            'brand_id' => $nikeBrand->id,
-            'size_id' => $size40->id,
-            'name' => 'Aeron',
-            'description' => 'hello',
-            'price' => 9.97,
-            'stock' => 10,
-            'image' => 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&auto=format&fit=crop'
-        ]);
+        Product::updateOrCreate(
+            ['name' => 'Aeron'],
+            [
+                'category_id' => $sportsCategory->id,
+                'sub_category_id' => $sneakersSub->id,
+                'color_id' => $blackColor->id,
+                'brand_id' => $nikeBrand->id,
+                'size_id' => $size40->id,
+                'description' => 'hello',
+                'price' => 9.97,
+                'stock' => 10,
+                'image' => 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&auto=format&fit=crop'
+            ]
+        );
 
-        Product::create([
-            'id' => 3,
-            'category_id' => $sportsCategory->id,
-            'sub_category_id' => $runningSub->id,
-            'color_id' => $whiteColor->id,
-            'brand_id' => $adidasBrand->id,
-            'size_id' => $size40->id,
-            'name' => 'Runer',
-            'description' => 'hi',
-            'price' => 20.00,
-            'stock' => 15,
-            'image' => 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=600&auto=format&fit=crop'
-        ]);
+        Product::updateOrCreate(
+            ['name' => 'Runer'],
+            [
+                'category_id' => $sportsCategory->id,
+                'sub_category_id' => $runningSub->id,
+                'color_id' => $whiteColor->id,
+                'brand_id' => $adidasBrand->id,
+                'size_id' => $size40->id,
+                'description' => 'hi',
+                'price' => 20.00,
+                'stock' => 15,
+                'image' => 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=600&auto=format&fit=crop'
+            ]
+        );
 
-        Product::create([
-            'id' => 4,
-            'category_id' => $sportsCategory->id,
-            'sub_category_id' => $sneakersSub->id,
-            'color_id' => $blackColor->id,
-            'brand_id' => $nikeBrand->id,
-            'size_id' => $size40->id,
-            'name' => 'SAk',
-            'description' => 'hello',
-            'price' => 14.00,
-            'stock' => 11,
-            'image' => 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=600&auto=format&fit=crop'
-        ]);
+        Product::updateOrCreate(
+            ['name' => 'SAk'],
+            [
+                'category_id' => $sportsCategory->id,
+                'sub_category_id' => $sneakersSub->id,
+                'color_id' => $blackColor->id,
+                'brand_id' => $nikeBrand->id,
+                'size_id' => $size40->id,
+                'description' => 'hello',
+                'price' => 14.00,
+                'stock' => 11,
+                'image' => 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=600&auto=format&fit=crop'
+            ]
+        );
     }
 }
