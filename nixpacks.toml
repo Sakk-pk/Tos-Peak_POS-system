@@ -1,4 +1,8 @@
 # Nixpacks deployment configuration for Laravel + Vite on Railway
+providers = ["php", "node"]
+
+[phases.setup]
+nixPkgs = ["php82", "php82Extensions.pdo_mysql", "composer", "nodejs_20"]
 
 [phases.build]
 cmds = [
