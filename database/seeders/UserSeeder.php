@@ -41,11 +41,18 @@ class UserSeeder extends Seeder
         ]);
         $managerUser->syncRoles([$managerRole->name]);
 
-        // ── Staff ────────────────────────────────────────────────────────────
-        $staffRole = Role::firstOrCreate(['name' => 'Staff', 'guard_name' => 'web']);
-        $staffRole->syncPermissions([
+        // ── Cashier / Staff ──────────────────────────────────────────────────
+        $cashierUser = User::updateOrCreate(['email' => 'cashier@gmail.com'], [
+            'name'           => 'Cashier Staff',
+            'password'       => Hash::make('123456'),
+            'is_team_member' => true,
+        ]);
+
+        $cashierRole = Role::firstOrCreate(['name' => 'Cashier', 'guard_name' => 'web']);
+        $cashierRole->syncPermissions([
             'dashboard', 'pos', 'orders', 'customers',
         ]);
+        $cashierUser->syncRoles([$cashierRole->name]);
 
         // ── Seed mock customers (is_team_member = false) ─────────────────────
         User::updateOrCreate(['email' => 'sarah.chen@example.com'], [
