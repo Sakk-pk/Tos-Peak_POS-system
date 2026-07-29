@@ -3,6 +3,7 @@
 /public/build
 /public/hot
 /public/storage
+/public/products/*
 /storage/*.key
 /storage/framework
 /storage/pail

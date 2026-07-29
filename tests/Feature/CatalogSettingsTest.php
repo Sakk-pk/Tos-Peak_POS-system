@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\CatalogAttribute;
-use App\Models\Category;
-use App\Models\User;
+use App\Models\Product\CatalogAttribute;
+use App\Models\Product\Category;
+use App\Models\User\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

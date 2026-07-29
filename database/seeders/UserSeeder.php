@@ -17,9 +17,10 @@ class UserSeeder extends Seeder
     {
         // ── Admin ────────────────────────────────────────────────────────────
         $adminUser = User::updateOrCreate(['email' => 'admin@gmail.com'], [
-            'name'           => 'admin',
-            'password'       => Hash::make('123456'),
-            'is_team_member' => true,
+            'name'              => 'admin',
+            'password'          => Hash::make('123456'),
+            'is_team_member'    => true,
+            'email_verified_at' => now(),
         ]);
 
         $adminRole = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
@@ -30,9 +31,10 @@ class UserSeeder extends Seeder
 
         // ── Manager ──────────────────────────────────────────────────────────
         $managerUser = User::updateOrCreate(['email' => 'manager@gmail.com'], [
-            'name'           => 'Manager Staff',
-            'password'       => Hash::make('123456'),
-            'is_team_member' => true,
+            'name'              => 'Manager Staff',
+            'password'          => Hash::make('123456'),
+            'is_team_member'    => true,
+            'email_verified_at' => now(),
         ]);
 
         $managerRole = Role::firstOrCreate(['name' => 'Manager', 'guard_name' => 'web']);
@@ -43,9 +45,10 @@ class UserSeeder extends Seeder
 
         // ── Cashier / Staff ──────────────────────────────────────────────────
         $cashierUser = User::updateOrCreate(['email' => 'cashier@gmail.com'], [
-            'name'           => 'Cashier Staff',
-            'password'       => Hash::make('123456'),
-            'is_team_member' => true,
+            'name'              => 'Cashier Staff',
+            'password'          => Hash::make('123456'),
+            'is_team_member'    => true,
+            'email_verified_at' => now(),
         ]);
 
         $cashierRole = Role::firstOrCreate(['name' => 'Cashier', 'guard_name' => 'web']);

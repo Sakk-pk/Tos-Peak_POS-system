@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Models\User;
+use App\Models\User\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -69,5 +69,23 @@ class AuthenticationTest extends TestCase
 
         $this->assertGuest();
         $response->assertRedirect('/');
+    }
+
+    public function test_cashier_with_pos_permission_redirects_to_pos_when_dashboard_permission_not_assigned(): void
+    {
+        \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'pos', 'guard_name' => 'web']);
+        $cashierRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Cashier Only', 'guard_name' => 'web']);
+        $cashierRole->syncPermissions(['pos']);
+
+        $cashier = User::factory()->create(['status' => 'Active', 'is_team_member' => true]);
+        $cashier->assignRole($cashierRole);
+
+        $response = $this->post('/login', [
+            'email'    => $cashier->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect('/point-of-sale');
     }
 }

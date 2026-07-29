@@ -281,6 +281,12 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthenticated'], 401);
         }
 
+        if ($user->status === 'Inactive') {
+            return response()->json([
+                'message' => 'Your account has been deactivated. Please contact an administrator.'
+            ], 403);
+        }
+
         $redirectUrl = $this->loginRedirectUrl($user);
 
         return response()->json(array_merge($user->toArray(), [

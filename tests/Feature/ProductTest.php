@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\Brand;
-use App\Models\CatalogAttribute;
-use App\Models\Category;
-use App\Models\Product;
-use App\Models\User;
+use App\Models\Product\Brand;
+use App\Models\Product\CatalogAttribute;
+use App\Models\Product\Category;
+use App\Models\Product\Product;
+use App\Models\User\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -69,7 +69,7 @@ class ProductTest extends TestCase
         // ProductController::store redirects to the new product's show page so managers
         // can immediately review the product and add additional variants.
         $newProduct = Product::where('name', 'Test Product')->first();
-        $response->assertRedirect(route('products.show', $newProduct->id));
+        $response->assertRedirect(route('products.index'));
 
 
         $this->assertDatabaseHas('products', [

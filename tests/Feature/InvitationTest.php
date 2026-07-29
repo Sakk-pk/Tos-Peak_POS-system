@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\Invitation;
-use App\Models\User;
+use App\Models\User\Invitation;
+use App\Models\User\User;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -23,10 +23,12 @@ class InvitationTest extends TestCase
     {
         parent::setUp();
 
-        $this->role = Role::firstOrCreate(['name' => 'Manager', 'guard_name' => 'web']);
-        $adminRole = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'dashboard', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'team-members', 'guard_name' => 'web']);
-        $adminRole->syncPermissions(['team-members']);
+        $this->role = Role::firstOrCreate(['name' => 'Manager', 'guard_name' => 'web']);
+        $this->role->syncPermissions(['dashboard']);
+        $adminRole = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
+        $adminRole->syncPermissions(['team-members', 'dashboard']);
 
         $this->admin = User::factory()->create([
             'is_team_member' => true,

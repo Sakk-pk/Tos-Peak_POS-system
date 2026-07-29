@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\Order;
-use App\Models\Product;
-use App\Models\Category;
-use App\Models\Brand;
-use App\Models\CatalogAttribute;
-use App\Models\User;
+use App\Models\Order\Order;
+use App\Models\Product\Product;
+use App\Models\Product\Category;
+use App\Models\Product\Brand;
+use App\Models\Product\CatalogAttribute;
+use App\Models\User\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

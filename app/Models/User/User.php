@@ -15,8 +15,12 @@ use App\Models\Customer\RewardTransaction;
 
 class User extends Authenticatable implements JWTSubject, TwoFactorAuthenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles, TwoFactorAuthentication;
+
+    protected static function newFactory()
+    {
+        return \Database\Factories\UserFactory::new();
+    }
 
     /**
      * The attributes that are mass assignable.

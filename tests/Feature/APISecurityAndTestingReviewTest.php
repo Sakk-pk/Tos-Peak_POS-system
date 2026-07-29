@@ -2,17 +2,17 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\Product;
-use App\Models\Order;
-use App\Models\Payment;
+use App\Models\User\User;
+use App\Models\Product\Product;
+use App\Models\Order\Order;
+use App\Models\Payment\Payment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Role;
-use App\Models\Brand;
-use App\Models\Category;
-use App\Models\CatalogAttribute;
+use App\Models\Product\Brand;
+use App\Models\Product\Category;
+use App\Models\Product\CatalogAttribute;
 use Tests\TestCase;
 
 class APISecurityAndTestingReviewTest extends TestCase
@@ -228,7 +228,7 @@ class APISecurityAndTestingReviewTest extends TestCase
             ->assertJson([
                 'success' => false,
                 'requires_auth' => true,
-                'message' => 'Unauthorized: Orders permission required.'
+                'message' => 'Unauthorized: Orders or POS permission required.'
             ]);
     }
 
@@ -255,7 +255,7 @@ class APISecurityAndTestingReviewTest extends TestCase
         ]);
 
         // Mock verifyPayment in PaymentService to return true
-        $this->mock(\App\Services\PaymentService::class, function ($mock) {
+        $this->mock(\App\Services\Payment\PaymentService::class, function ($mock) {
             $mock->shouldReceive('verifyPayment')->once()->with('e5915f34778ae434914c6ff2ef9198b1')->andReturn(true);
         });
 
