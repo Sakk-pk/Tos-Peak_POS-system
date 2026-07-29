@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import StorefrontLayout from '@/Layouts/Storefront/StorefrontLayout';
 import KhqrPayment from '@/Components/KhqrPayment';
@@ -273,11 +273,13 @@ export default function CheckoutPage() {
     return discountedSubtotal + tax;
   }, [cartSubtotal, discountAmount, tax]);
 
+  const isOrderCompleted = useRef(false);
+
   // Redirect to cart if loading is complete AND cart is still empty.
   // cartLoading starts as `true` for authenticated users (see useCart.js) so this
   // effect will NOT fire on the first render before the async fetch completes.
   useEffect(() => {
-    if (!cartLoading && cartItems.length === 0) {
+    if (!cartLoading && cartItems.length === 0 && !isOrderCompleted.current) {
       router.visit(route('cart.index'));
     }
   }, [cartItems, cartLoading]);
@@ -384,6 +386,7 @@ export default function CheckoutPage() {
       });
 
       if (data.success) {
+        isOrderCompleted.current = true;
         // Clear local storage cart, server cart & remove applied voucher
         cartService.clearCart(!!user);
         setCartItems([]);
@@ -416,6 +419,7 @@ export default function CheckoutPage() {
   };
 
   const handleQrPaymentSuccess = (details) => {
+    isOrderCompleted.current = true;
     setShowQrModal(false);
     maybeSaveNewAddressToProfile();
     cartService.clearCart(!!user);
@@ -426,24 +430,14 @@ export default function CheckoutPage() {
       detail: { message: 'KHQR payment successful!', type: 'success' }
     }));
 
-    axios.get(`/api/khqr/check/${details.orderId || ''}`).then(res => {
-      const order = res.data.order;
-      const queryParams = new URLSearchParams({
-        order_number: order?.order_number || details.orderId,
-        date: formatDate(order?.created_at || new Date(), true),
-        payment_method: 'qr',
-        amount: String(order?.total_amount || grandTotal),
-      }).toString();
-      router.visit(`/order-success?${queryParams}`);
-    }).catch(() => {
-      const queryParams = new URLSearchParams({
-        order_number: details.orderId,
-        date: formatDate(new Date(), true),
-        payment_method: 'qr',
-        amount: String(grandTotal),
-      }).toString();
-      router.visit(`/order-success?${queryParams}`);
-    });
+    const queryParams = new URLSearchParams({
+      order_number: details?.orderId || 'N/A',
+      date: details?.date || formatDate(new Date(), true),
+      payment_method: 'qr',
+      amount: String(grandTotal),
+    }).toString();
+
+    router.visit(`/order-success?${queryParams}`);
   };
 
   if (cartLoading) {
