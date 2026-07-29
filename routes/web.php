@@ -38,6 +38,7 @@ Route::get('/storage/{path}', function ($path) {
 Route::get('/', [PointOfSaleController::class, 'storefront'])->name('storefront.index');
 Route::get('/shop/{id}', [PointOfSaleController::class, 'storefrontShow'])->name('storefront.show');
 Route::get('/cart', [\App\Http\Controllers\Order\CustomerCartController::class, 'index'])->name('cart.index');
+Route::get('/order-success', [\App\Http\Controllers\Order\CustomerCartController::class, 'success'])->name('checkout.success');
 
 // Wishlist product IDs (public — returns [] for guests, real IDs for customers)
 Route::get('/api/wishlist/ids', [WishlistController::class, 'ids'])->name('wishlist.ids');
@@ -61,7 +62,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/api/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
     Route::delete('/api/wishlist', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
     Route::get('/checkout', [\App\Http\Controllers\Order\CustomerCartController::class, 'checkout'])->name('checkout.index');
-    Route::get('/order-success', [\App\Http\Controllers\Order\CustomerCartController::class, 'success'])->name('checkout.success');
 
     // Cart Endpoints
     Route::get('/api/cart', [\App\Http\Controllers\Order\CartController::class, 'index'])->name('cart.index.api');
