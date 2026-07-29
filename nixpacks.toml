@@ -6,7 +6,8 @@ nixPkgs = ["php82", "php82Extensions.pdo_mysql", "composer", "nodejs_20"]
 
 [phases.build]
 cmds = [
-    "mkdir -p storage/framework/views storage/framework/cache storage/framework/sessions bootstrap/cache",
+    "mkdir -p storage/framework/views storage/framework/cache storage/framework/sessions bootstrap/cache public/storage",
+    "php artisan storage:link || true",
     "npm run build",
     "php artisan optimize:clear"
 ]
