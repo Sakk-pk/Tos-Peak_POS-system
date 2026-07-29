@@ -9,17 +9,35 @@ class BrandSeeder extends Seeder
 {
     public function run(): void
     {
-        $items = [
-            ['name' => 'Nike', 'view_order' => 1],
-            ['name' => 'Adidas', 'view_order' => 2],
-            ['name' => 'Puma', 'view_order' => 3],
-        ];
+        $items = array (
+  0 => 
+  array (
+    'id' => 1,
+    'name' => 'Nike',
+    'view_order' => 1,
+    'created_at' => '2026-06-11T04:55:22.000000Z',
+    'updated_at' => '2026-06-11T04:55:22.000000Z',
+  ),
+  1 => 
+  array (
+    'id' => 2,
+    'name' => 'Adidas',
+    'view_order' => 2,
+    'created_at' => '2026-06-11T04:55:22.000000Z',
+    'updated_at' => '2026-06-11T04:55:22.000000Z',
+  ),
+  2 => 
+  array (
+    'id' => 3,
+    'name' => 'Puma',
+    'view_order' => 3,
+    'created_at' => '2026-06-11T04:55:22.000000Z',
+    'updated_at' => '2026-06-11T04:55:22.000000Z',
+  ),
+);
 
         foreach ($items as $item) {
-            Brand::updateOrCreate(
-                ['name' => $item['name']],
-                $item
-            );
+            Brand::updateOrCreate(["id" => $item["id"]], $item);
         }
     }
 }
