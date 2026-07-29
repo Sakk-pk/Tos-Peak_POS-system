@@ -43,10 +43,11 @@ export default function Cart({
                 ) : (
                     <div className="space-y-3.5">
                         {items.map((item) => {
-                            const imageSrc = item.image
-                                ? (item.image.startsWith('http') || item.image.startsWith('/'))
-                                    ? item.image
-                                    : `/storage/${item.image}`
+                            const rawImg = item.image || '';
+                            const imageSrc = rawImg
+                                ? (rawImg.startsWith('http') || rawImg.startsWith('/'))
+                                    ? rawImg
+                                    : `/${rawImg}`
                                 : '/images/placeholder-product.png';
 
                             const itemSubtotal = item.price * item.quantity;
@@ -60,7 +61,14 @@ export default function Cart({
                                                 alt={item.name}
                                                 className="h-full w-full object-contain mix-blend-multiply"
                                                 onError={(e) => {
-                                                    e.currentTarget.src = '/images/placeholder-product.png';
+                                                    if (rawImg && !e.currentTarget.dataset.retried) {
+                                                        e.currentTarget.dataset.retried = 'true';
+                                                        e.currentTarget.src = rawImg.startsWith('/')
+                                                            ? `/storage${rawImg}`
+                                                            : (rawImg.startsWith('storage/') ? `/${rawImg}` : `/storage/${rawImg}`);
+                                                    } else {
+                                                        e.currentTarget.src = '/images/placeholder-product.png';
+                                                    }
                                                 }}
                                             />
                                         </div>
