@@ -60,7 +60,7 @@ export default function InventoryProductRow({
     const imageSrc = product.image
         ? (product.image.startsWith('http') || product.image.startsWith('/'))
             ? product.image
-            : `/${product.image}`
+            : `/storage/${product.image}`
         : '';
 
     const isSeparated = variant === 'separated';
@@ -119,7 +119,14 @@ export default function InventoryProductRow({
                                 src={imageSrc}
                                 alt={product.name}
                                 className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                onError={(e) => {
+                                    if (product.image && !e.currentTarget.dataset.retried) {
+                                        e.currentTarget.dataset.retried = 'true';
+                                        e.currentTarget.src = product.image.startsWith('/') ? product.image : `/${product.image}`;
+                                    } else {
+                                        e.currentTarget.style.display = 'none';
+                                    }
+                                }}
                             />
                         ) : (
                             <div className="h-16 w-16 bg-gray-200/40 border border-black/5 flex flex-col items-center justify-center p-1.5 text-center text-[7px] font-mono tracking-tighter text-gray-400 uppercase select-none rounded">

@@ -84,7 +84,12 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $filename = time() . '_' . preg_replace('/[^A-Za-z0-9.]/', '_', $file->getClientOriginalName());
-            $validated['image'] = $file->storeAs('products', $filename, 'public');
+            $path = $file->storeAs('products', $filename, 'public');
+            try {
+                @mkdir(public_path('products'), 0755, true);
+                @copy($file->getRealPath(), public_path('products/' . $filename));
+            } catch (\Throwable $e) {}
+            $validated['image'] = $path;
         } elseif (is_string($request->input('image'))) {
             $validated['image'] = $request->input('image');
         }
@@ -145,7 +150,12 @@ class ProductController extends Controller
             }
             $file = $request->file('image');
             $filename = time() . '_' . preg_replace('/[^A-Za-z0-9.]/', '_', $file->getClientOriginalName());
-            $validated['image'] = $file->storeAs('products', $filename, 'public');
+            $path = $file->storeAs('products', $filename, 'public');
+            try {
+                @mkdir(public_path('products'), 0755, true);
+                @copy($file->getRealPath(), public_path('products/' . $filename));
+            } catch (\Throwable $e) {}
+            $validated['image'] = $path;
         } else {
             unset($validated['image']);
         }

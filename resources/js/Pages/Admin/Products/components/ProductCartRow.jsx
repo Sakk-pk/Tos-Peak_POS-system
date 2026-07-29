@@ -52,7 +52,7 @@ export default function ProductCartRow({ product, formatPrice, onEdit, onDelete,
     const imageSrc = product.image
         ? (product.image.startsWith('http') || product.image.startsWith('/'))
             ? product.image
-            : `/${product.image}`
+            : `/storage/${product.image}`
         : '';
 
     const isSeparated = variant === 'separated';
@@ -81,7 +81,14 @@ export default function ProductCartRow({ product, formatPrice, onEdit, onDelete,
                                 src={imageSrc}
                                 alt={product.name}
                                 className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                onError={(e) => {
+                                    if (product.image && !e.currentTarget.dataset.retried) {
+                                        e.currentTarget.dataset.retried = 'true';
+                                        e.currentTarget.src = product.image.startsWith('/') ? product.image : `/${product.image}`;
+                                    } else {
+                                        e.currentTarget.style.display = 'none';
+                                    }
+                                }}
                             />
                         ) : (
                             <div className="h-20 w-20 bg-gray-200/40 border border-black/5 flex flex-col items-center justify-center p-2 text-center text-[8px] font-mono tracking-tighter text-gray-400 uppercase select-none rounded">
