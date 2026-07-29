@@ -31,7 +31,7 @@ export default function ProductCard({
     const imageSrc = product.image
         ? (product.image.startsWith('http') || product.image.startsWith('/'))
             ? product.image
-            : `/storage/${product.image}`
+            : `/${product.image}`
         : '/images/placeholder-product.png';
 
     const isOutOfStock = product.stock <= 0;
@@ -123,7 +123,12 @@ export default function ProductCard({
                             loading="lazy"
                             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                             onError={(e) => {
-                                e.currentTarget.src = '/images/placeholder-product.png';
+                                if (product.image && !e.currentTarget.dataset.retried) {
+                                    e.currentTarget.dataset.retried = 'true';
+                                    e.currentTarget.src = `/storage/${product.image}`;
+                                } else {
+                                    e.currentTarget.src = '/images/placeholder-product.png';
+                                }
                             }}
                         />
 

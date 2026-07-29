@@ -107,7 +107,7 @@ export default function ProductDetail({ product, variants = [], allSizes = [], r
     const mainImageSrc = activeProduct.image
         ? (activeProduct.image.startsWith('http') || activeProduct.image.startsWith('/'))
             ? activeProduct.image
-            : `/storage/${activeProduct.image}`
+            : `/${activeProduct.image}`
         : '/images/placeholder-product.png';
 
     // Mock different angles of the sneaker for a boutique gallery feel

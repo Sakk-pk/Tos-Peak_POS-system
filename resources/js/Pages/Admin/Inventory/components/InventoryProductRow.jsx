@@ -60,7 +60,7 @@ export default function InventoryProductRow({
     const imageSrc = product.image
         ? (product.image.startsWith('http') || product.image.startsWith('/'))
             ? product.image
-            : `/storage/${product.image}`
+            : `/${product.image}`
         : '';
 
     const isSeparated = variant === 'separated';
