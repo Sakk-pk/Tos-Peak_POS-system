@@ -46,7 +46,7 @@ export default function AddToBagSuccessModal({
   const mainImageSrc = addedProduct.image
     ? (addedProduct.image.startsWith('http') || addedProduct.image.startsWith('/'))
       ? addedProduct.image
-      : `/storage/${addedProduct.image}`
+      : `/${addedProduct.image}`
     : '/images/placeholder-product.png';
 
   return (
@@ -175,7 +175,7 @@ export default function AddToBagSuccessModal({
                   const relImg = p.image
                     ? (p.image.startsWith('http') || p.image.startsWith('/'))
                       ? p.image
-                      : `/storage/${p.image}`
+                      : `/${p.image}`
                     : '/images/placeholder-product.png';
 
                   return (

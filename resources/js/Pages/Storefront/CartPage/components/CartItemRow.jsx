@@ -10,9 +10,7 @@ export default function CartItemRow({
   formatPrice 
 }) {
   const img = item.image
-    ? (item.image.startsWith('http') || item.image.startsWith('/'))
-      ? item.image
-      : `/storage/${item.image}`
+    ? (item.image.startsWith('http') || item.image.startsWith('/') ? item.image : `/${item.image}`)
     : '/images/placeholder-product.png';
 
   return (

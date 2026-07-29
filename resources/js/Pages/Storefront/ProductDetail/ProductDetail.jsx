@@ -356,7 +356,7 @@ export default function ProductDetail({ product, variants = [], allSizes = [], r
                                     const swatchImg = swatch.image
                                         ? (swatch.image.startsWith('http') || swatch.image.startsWith('/'))
                                             ? swatch.image
-                                            : `/storage/${swatch.image}`
+                                            : `/${swatch.image}`
                                         : '/images/placeholder-product.png';
                                         
                                     const isSelected = selectedColorId === swatch.color_id;
@@ -540,7 +540,7 @@ export default function ProductDetail({ product, variants = [], allSizes = [], r
                                 const relImg = p.image
                                     ? (p.image.startsWith('http') || p.image.startsWith('/'))
                                         ? p.image
-                                        : `/storage/${p.image}`
+                                        : `/${p.image}`
                                     : '/images/placeholder-product.png';
 
                                 return (
