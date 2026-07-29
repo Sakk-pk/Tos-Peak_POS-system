@@ -18,6 +18,22 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 
+// Dynamic storage file server (serves uploaded media if symlink is absent or on container restarts)
+Route::get('/storage/{path}', function ($path) {
+    $filePath = storage_path('app/public/' . $path);
+    if (!file_exists($filePath)) {
+        $filePath = public_path('products/' . basename($path));
+    }
+    if (!file_exists($filePath)) {
+        $filePath = public_path($path);
+    }
+    if (file_exists($filePath) && is_file($filePath)) {
+        $mime = mime_content_type($filePath) ?: 'image/png';
+        return response()->file($filePath, ['Content-Type' => $mime]);
+    }
+    return abort(404);
+})->where('path', '.*');
+
 // ── Public Storefront ── (no auth required)
 Route::get('/', [PointOfSaleController::class, 'storefront'])->name('storefront.index');
 Route::get('/shop/{id}', [PointOfSaleController::class, 'storefrontShow'])->name('storefront.show');
