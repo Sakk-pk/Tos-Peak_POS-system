@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import AdminLayout from '@/Layouts/Admin/AdminLayout';
 import Modal from '@/Components/Modal';
 import CustomerFormModal from './components/CustomerFormModal';
@@ -19,11 +19,15 @@ import {
     AlertCircle,
     ShieldCheck,
     ShieldAlert,
+    ChevronLeft,
+    ChevronRight,
 } from 'lucide-react';
 
 export default function CustomersPage({ customers = [] }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
 
     const [showFormModal, setShowFormModal] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState(null);
@@ -71,6 +75,17 @@ export default function CustomersPage({ customers = [] }) {
             return matchesSearch && matchesStatus;
         });
     }, [customers, searchTerm, statusFilter]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / ITEMS_PER_PAGE));
+
+    const paginatedCustomers = useMemo(() => {
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredCustomers.slice(start, start + ITEMS_PER_PAGE);
+    }, [filteredCustomers, currentPage]);
 
     // Page stats
     const totalVisits = customers.reduce((sum, c) => sum + Number(c.visits || 0), 0);
@@ -203,7 +218,7 @@ export default function CustomersPage({ customers = [] }) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {filteredCustomers.map((customer) => {
+                            {paginatedCustomers.map((customer) => {
                                 const isActive = customer.status !== 'Inactive';
                                 return (
                                     <tr
@@ -317,6 +332,52 @@ export default function CustomersPage({ customers = [] }) {
                 {filteredCustomers.length === 0 && (
                     <div className="px-6 py-12 text-center text-xs font-medium text-gray-500">
                         No customer records matching search or filter criteria.
+                    </div>
+                )}
+
+                {/* ── 10 Items Per Page Pagination Bar ── */}
+                {filteredCustomers.length > 0 && (
+                    <div className="px-6 py-4 border-t border-gray-200 bg-white flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="text-xs font-semibold text-gray-500">
+                            Showing <span className="font-bold text-gray-900">{Math.min(filteredCustomers.length, (currentPage - 1) * ITEMS_PER_PAGE + 1)}</span> to{' '}
+                            <span className="font-bold text-gray-900">{Math.min(filteredCustomers.length, currentPage * ITEMS_PER_PAGE)}</span> of{' '}
+                            <span className="font-bold text-gray-900">{filteredCustomers.length}</span> customers
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                type="button"
+                                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1}
+                                className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1"
+                            >
+                                <ChevronLeft size={14} /> Previous
+                            </button>
+
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                                <button
+                                    key={pageNum}
+                                    type="button"
+                                    onClick={() => setCurrentPage(pageNum)}
+                                    className={`w-8 h-8 rounded-lg text-xs font-black transition flex items-center justify-center ${
+                                        currentPage === pageNum
+                                            ? 'bg-black text-white'
+                                            : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    {pageNum}
+                                </button>
+                            ))}
+
+                            <button
+                                type="button"
+                                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                disabled={currentPage === totalPages}
+                                className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1"
+                            >
+                                Next <ChevronRight size={14} />
+                            </button>
+                        </div>
                     </div>
                 )}
             </section>
